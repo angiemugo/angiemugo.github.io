@@ -61,7 +61,7 @@ url = "https://github.com/angiemugo/"
 name = "Twitter"
 icon = "fa fa-2x fa-twitter"
 weight = 2
-url = https://twitter.com/angien_mugo
+url = "https://twitter.com/angien_mugo"
 
 [[params.social]]
 name = "LinkedIn"
@@ -73,7 +73,7 @@ url = "https://www.linkedin.com/in/angiemugo/"
 name = "Medium"
 icon = "fa fa-2x fa-medium"
 weight = 4
-url = https://medium.com/@angela.mugo
+url = "https://medium.com/@angela.mugo"
 
 
 [languages.en]
