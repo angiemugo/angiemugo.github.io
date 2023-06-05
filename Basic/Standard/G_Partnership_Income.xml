@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="G_Partnership_Income" script:language="StarBasic">&apos;*************************************
+&apos;Add Row Functionality
+&apos;G_Partnership_Income
+&apos;Case : Self
+&apos;*************************************
+Sub addRow_G_Partnership_IncomeList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;ProfitShare.ListS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(gPinOfPartFirm_Listener,gPinOfPartFirm)
+    call removeKRAListners(gTypeOfIncome_Listener,gTypeOfIncome)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;A&quot;,&quot;gPinOfPartFirm_Listener_&quot;,gPinOfPartFirm_Listener,gPinOfPartFirm)
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;C&quot;,&quot;gTypeOfIncome_Listener_&quot;,gTypeOfIncome_Listener,gTypeOfIncome)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Partnership Firm
+&apos;G_Partnership_Income
+&apos;Case : Self
+&apos;*************************************
+sub gPinOfPartFirm_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(gPinOfPartFirm_Listener,gPinOfPartFirm)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;A&quot;,&quot;gPinOfPartFirm_Listener_&quot;,gPinOfPartFirm_Listener,gPinOfPartFirm)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	    Dim currRange as Object
+		Dim row As Long
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;ProfitShare.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;G_Partnership_Income&quot;)
+		Dim PINNo As String 
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo=UCase(currRange.string)
+			currRange.string=UCase(PINNo)
+			row= currRange.getCellAddress().Row 
+			currRow=row+1
+			currRange1 = sheet.getCellrangeByName(&quot;A&quot; &amp; (currRow) &amp; &quot;:A&quot; &amp; (currRow))
+			currRange2 = sheet.getCellrangeByName(&quot;C&quot; &amp; (currRow) &amp; &quot;:C&quot; &amp; (currRow))	
+			PINNo = currRange1.string
+			refSch= currRange2.string
+			
+			If PINNo &lt;&gt; &quot;&quot; Then
+			    If (TestNonIndiPIN(PINNo)) Then
+			    	If 	taxPyrPINNo&lt;&gt;&quot;&quot; or taxPyrWifePINNo&lt;&gt;&quot;&quot; then
+					    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+					          	msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+					    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+					    		msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					    		MsgBox msgPinDupWife
+					    End If
+					 End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter Non Individual Partnership Firm&apos;s Pin in proper format.&quot;
+		  	    End If
+		  	    if PINNo&lt;&gt;&quot;&quot; and refSch&lt;&gt;&quot;&quot; then
+		  	    for i=startRowNum to endRowNum
+						 testPattern = sheet.getCellByPosition(11,i).string
+			
+					         if row=i then &apos;Skip
+					         
+					         Else
+						         If testPattern&lt;&gt;&quot;&quot; then
+						            If UCase(testPattern) = Ucase(PINNo &amp; refSch) then
+						            	MsgBox &quot;You have already entered Type Of Income as &quot; &amp; refSch &amp; &quot; against PIN of Partner &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; (i+1)
+						            	currRange.string=&quot;&quot;
+						            	Exit for
+						         	End If
+							     End If    
+							 End If
+		   		 Next
+				End If
+		     End If
+	     End If   	
+	   	protectsheet(&quot;G_Partnership_Income&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;A&quot;,&quot;gPinOfPartFirm_Listener_&quot;,gPinOfPartFirm_Listener,gPinOfPartFirm)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Type Of Income
+&apos;G_Partnership_Income
+&apos;Case : Self
+&apos;*************************************
+sub gTypeOfIncome_Listener_modified(oEv)
+	if (notCallListener) then
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(gTypeOfIncome_Listener,gTypeOfIncome)
+	
+	&apos;code
+	
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;C&quot;,&quot;gTypeOfIncome_Listener_&quot;,gTypeOfIncome_Listener,gTypeOfIncome)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;ProfitShare.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;G_Partnership_Income&quot;)
+		Dim value As String 
+		Dim county As String 
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			value= currRange.string
+			row= currRange.getCellAddress().Row 
+			
+			currRow=row+1
+			currRange1 = sheet.getCellrangeByName(&quot;A&quot; &amp; (currRow) &amp; &quot;:A&quot; &amp; (currRow))
+			currRange2 = sheet.getCellrangeByName(&quot;C&quot; &amp; (currRow) &amp; &quot;:C&quot; &amp; (currRow))	
+			PINNo = currRange1.string
+			refSch= currRange2.string
+			if PINNo&lt;&gt;&quot;&quot; and refSch&lt;&gt;&quot;&quot; then
+		  	    for i=startRowNum to endRowNum
+						 testPattern = sheet.getCellByPosition(11,i).string
+			
+					         if row=i then &apos;Skip
+					         
+					         Else
+						         If testPattern&lt;&gt;&quot;&quot; then
+						            If UCase(testPattern) = Ucase(PINNo &amp; refSch) then
+						            	MsgBox &quot;You have already entered Type Of Income as &quot; &amp; refSch &amp; &quot; against PIN of Partner &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; (i+1)
+						            	currRange.string=&quot;&quot;
+						            	Exit for
+						         	End If
+							     End If    
+							 End If
+		   		 Next
+			 End If	
+			
+			
+			sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+			sheet.Unprotect(Pwd)
+			oRange = ThisComponent.NamedRanges.getByName(&quot;TypeOfIncome&quot;)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		    
+			if value&lt;&gt;&quot;&quot; then	
+				sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+				for i=startRowNum to endRowNum
+				 county=sheet.getCellByPosition(0,i).string
+				         If county&lt;&gt;&quot;&quot; then
+				            If county = value then
+				            	ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;).getCellrangeByName(&quot;K&quot;&amp;(row+1)&amp;&quot;:K&quot;&amp;(row+1)).string=Cstr(sheet.getCellByPosition(1,i).string)
+				            	Exit for
+				         	End If
+					     End If
+			    Next i
+		    Else
+		    	ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;).getCellrangeByName(&quot;K&quot;&amp;(row+1)&amp;&quot;:K&quot;&amp;(row+1)).string=&quot;&quot;
+		    End If      
+	     End If
+	   	
+	   	protectsheet(&quot;G_Partnership_Income&quot;) 
+	   	protectsheet(&quot;Data&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListS&quot;,&quot;C&quot;,&quot;gTypeOfIncome_Listener_&quot;,gTypeOfIncome_Listener,gTypeOfIncome)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+	
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;G_Partnership_Income
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_G_Partnership_IncomeListWife()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;ProfitShare.ListW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(gPinOfPartFirmW_Listener,gPinOfPartFirmW)
+    call removeKRAListners(gTypeOfIncomeW_Listener,gTypeOfIncomeW)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;A&quot;,&quot;gPinOfPartFirmW_Listener_&quot;,gPinOfPartFirmW_Listener,gPinOfPartFirmW)
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;C&quot;,&quot;gTypeOfIncomeW_Listener_&quot;,gTypeOfIncomeW_Listener,gTypeOfIncomeW)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Partnership Firm
+&apos;G_Partnership_Income
+&apos;Case : Wife
+&apos;*************************************
+sub gPinOfPartFirmW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(gPinOfPartFirmW_Listener,gPinOfPartFirmW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;A&quot;,&quot;gPinOfPartFirmW_Listener_&quot;,gPinOfPartFirmW_Listener,gPinOfPartFirmW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+		Dim currRange as Object
+		Dim row As Long
+		
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;ProfitShare.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;G_Partnership_Income&quot;)
+		Dim PINNo As String 
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo=UCase(currRange.string)
+			currRange.string=UCase(PINNo)
+			row= currRange.getCellAddress().Row 
+			currRow=row+1
+			currRange1 = sheet.getCellrangeByName(&quot;A&quot; &amp; (currRow) &amp; &quot;:A&quot; &amp; (currRow))
+			currRange2 = sheet.getCellrangeByName(&quot;C&quot; &amp; (currRow) &amp; &quot;:C&quot; &amp; (currRow))	
+			PINNo = currRange1.string
+			refSch= currRange2.string
+			
+			If PINNo &lt;&gt; &quot;&quot; Then
+			    If (TestNonIndiPIN(PINNo)) Then
+			    
+					   If 	taxPyrPINNo&lt;&gt;&quot;&quot; or taxPyrWifePINNo&lt;&gt;&quot;&quot; then
+					    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+					          	msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+					    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+					    		msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					    		MsgBox msgPinDupWife
+					    End If
+					 End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter Non Individual Partnership Firm&apos;s Pin in proper format.&quot;
+		  	    End If
+		  	    if PINNo&lt;&gt;&quot;&quot; and refSch&lt;&gt;&quot;&quot; then
+		  	    for i=startRowNum to endRowNum
+						 testPattern = sheet.getCellByPosition(11,i).string
+			
+					         if row=i then &apos;Skip
+					         
+					         Else
+						         If testPattern&lt;&gt;&quot;&quot; then
+						            If UCase(testPattern) = Ucase(PINNo &amp; refSch) then
+						            	MsgBox &quot;You have already entered Type Of Income as &quot; &amp; refSch &amp; &quot; against PIN of Partner &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; (i+1)
+						            	currRange.string=&quot;&quot;
+						            	Exit for
+						         	End If
+							     End If    
+							 End If
+		   		 Next
+				End If
+		     End If
+	     End If   	
+	   	protectsheet(&quot;G_Partnership_Income&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;A&quot;,&quot;gPinOfPartFirmW_Listener_&quot;,gPinOfPartFirmW_Listener,gPinOfPartFirmW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Type Of Income
+&apos;G_Partnership_Income
+&apos;Case : Wife
+&apos;*************************************
+sub gTypeOfIncomeW_Listener_modified(oEv)
+	if (notCallListener) then
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(gTypeOfIncomeW_Listener,gTypeOfIncomeW)
+	
+	&apos;code
+	
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;C&quot;,&quot;gTypeOfIncomeW_Listener_&quot;,gTypeOfIncomeW_Listener,gTypeOfIncomeW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;ProfitShare.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;G_Partnership_Income&quot;)
+		Dim value As String 
+		Dim county As String 
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			value= currRange.string
+			row= currRange.getCellAddress().Row 
+			
+			currRow=row+1
+			currRange1 = sheet.getCellrangeByName(&quot;A&quot; &amp; (currRow) &amp; &quot;:A&quot; &amp; (currRow))
+			currRange2 = sheet.getCellrangeByName(&quot;C&quot; &amp; (currRow) &amp; &quot;:C&quot; &amp; (currRow))	
+			PINNo = currRange1.string
+			refSch= currRange2.string
+			if PINNo&lt;&gt;&quot;&quot; and refSch&lt;&gt;&quot;&quot; then
+		  	    for i=startRowNum to endRowNum
+						 testPattern = sheet.getCellByPosition(11,i).string
+			
+					         if row=i then &apos;Skip
+					         
+					         Else
+						         If testPattern&lt;&gt;&quot;&quot; then
+						            If UCase(testPattern) = Ucase(PINNo &amp; refSch) then
+						            	MsgBox &quot;You have already entered Type Of Income as &quot; &amp; refSch &amp; &quot; against PIN of Partner &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; (i+1)
+						            	currRange.string=&quot;&quot;
+						            	Exit for
+						         	End If
+							     End If    
+							 End If
+		   		 Next
+			 End If	
+			
+			sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+			sheet.Unprotect(Pwd)
+			oRange = ThisComponent.NamedRanges.getByName(&quot;TypeOfIncome&quot;)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		    
+			if value&lt;&gt;&quot;&quot; then	
+				sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+				for i=startRowNum to endRowNum
+				 county=sheet.getCellByPosition(0,i).string
+				         If county&lt;&gt;&quot;&quot; then
+				            If county = value then
+				            	ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;).getCellrangeByName(&quot;K&quot;&amp;(row+1)&amp;&quot;:K&quot;&amp;(row+1)).string=Cstr(sheet.getCellByPosition(1,i).string)
+				            	Exit for
+				         	End If
+					     End If
+			    Next i
+		    Else
+		    	ThisComponent.sheets.getByName(&quot;G_Partnership_Income&quot;).getCellrangeByName(&quot;K&quot;&amp;(row+1)&amp;&quot;:K&quot;&amp;(row+1)).string=&quot;&quot;
+		    End If      
+	     End If
+	   	
+	   	protectsheet(&quot;G_Partnership_Income&quot;) 
+	   	protectsheet(&quot;Data&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;G_Partnership_Income&quot;,&quot;ProfitShare.ListW&quot;,&quot;C&quot;,&quot;gTypeOfIncomeW_Listener_&quot;,gTypeOfIncomeW_Listener,gTypeOfIncomeW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+</script:module>

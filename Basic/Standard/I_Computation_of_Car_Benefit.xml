@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="I_Computation_of_Car_Benefit" script:language="StarBasic">&apos;*************************************
+&apos;Add Row Functionality
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Self
+&apos;*************************************
+Sub addRow_I_Computation_of_Car_BenefitList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;CarBenefit.ListS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(iPinOfEmployer_Listener,iPinOfEmployer)
+    call removeKRAListners(iCarRegNumber_Listener,iCarRegNumber)
+    call removeKRAListners(iBodyType_Listener,iBodyType)
+    call removeKRAListners(iOwnedHired_Listener,iOwnedHired)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;A&quot;,&quot;iPinOfEmployer_Listener_&quot;,iPinOfEmployer_Listener,iPinOfEmployer)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;B&quot;,&quot;iCarRegNumber_Listener_&quot;,iCarRegNumber_Listener,iCarRegNumber)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;D&quot;,&quot;iBodyType_Listener_&quot;,iBodyType_Listener,iBodyType)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;F&quot;,&quot;iOwnedHired_Listener_&quot;,iOwnedHired_Listener,iOwnedHired)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;PINofEmployerCarS&quot;,&quot;CarBenefit.ListS&quot;)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;valueOfCarS&quot;,&quot;CarBenefit.ListS&quot;)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Employer
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Self
+&apos;*************************************
+sub iPinOfEmployer_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iPinOfEmployer_Listener,iPinOfEmployer)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;A&quot;,&quot;iPinOfEmployer_Listener_&quot;,iPinOfEmployer_Listener,iPinOfEmployer)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	    Dim row as Long
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim PINNo As String 
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim carValue as String
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo=UCase(currRange.string)
+			currRange.string=UCase(PINNo)
+			row= currRange.getCellAddress().Row 
+			carValue = sheet.getCellByPosition(1,row).string
+			If PINNo &lt;&gt; &quot;&quot; Then
+			    If (TestPIN(PINNo)) Then
+			    
+					    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+					          	msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+					    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+					    		msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					    		MsgBox msgPinDupWife
+					    Else
+					    	for i=startRowNum to endRowNum
+							
+							 pinCombination=sheet.getCellByPosition(0,i).string
+							 carCombination=sheet.getCellByPosition(1,i).string
+						&apos;	 result = TestDate(dateVal)
+						         if row=i then &apos;Skip
+						         Else
+							         If pinCombination&lt;&gt;&quot;&quot; then
+							            If UCase(pinCombination) = Ucase(PINNo) then
+							            	if UCase(carCombination) = Ucase(carValue) then
+								            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	MsgBox &quot;The Car Registration Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	currRange.string=&quot;&quot;
+							            	end if
+							         	End If
+								     End If    
+								 End If    
+						    Next
+					    End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter PIN of Employer in proper format.&quot;
+		  	    End If
+		     End If
+	     End If   	
+	   	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;A&quot;,&quot;iPinOfEmployer_Listener_&quot;,iPinOfEmployer_Listener,iPinOfEmployer)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Car Registration Number
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Self
+&apos;*************************************
+Sub iCarRegNumber_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iCarRegNumber_Listener,iCarRegNumber)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;B&quot;&amp;(startRowNum+1)&amp;&quot;:B&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim PRNNo As String 
+		Dim testPRNNo As String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim pinValue as String
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PRNNo= currRange.string
+			currRange.string=Ucase(PRNNo)
+			row= currRange.getCellAddress().Row 
+			pinValue = sheet.getCellByPosition(0,row).string
+			
+			for i=startRowNum to endRowNum
+							
+			 pinCombination=sheet.getCellByPosition(0,i).string
+			 carCombination=sheet.getCellByPosition(1,i).string
+		&apos;	 result = TestDate(dateVal)
+	         if row=i then &apos;Skip
+		         Else
+		         If carCombination&lt;&gt;&quot;&quot; then
+		            If UCase(carCombination) = Ucase(PRNNo) then
+		            	if UCase(pinCombination) = Ucase(pinValue) then
+			            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; PRNNo &amp; &quot; for PIN of Employer &quot; &amp; pinValue &amp; &quot; in Row &quot; &amp; row
+			            	MsgBox &quot;The Car Registration Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+			            	currRange.string=&quot;&quot;
+			           	end if
+			       	End If
+			     End If    
+			 End If    
+			Next
+						    
+		end If
+		protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	End If
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;B&quot;,&quot;iCarRegNumber_Listener_&quot;,iCarRegNumber_Listener,iCarRegNumber)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Body Type
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Self
+&apos;*************************************
+sub iBodyType_Listener_modified(oEv)
+	if (notCallListener) then
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iBodyType_Listener,iBodyType)
+	
+	&apos;code
+	
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;D&quot;,&quot;iBodyType_Listener_&quot;,iBodyType_Listener,iBodyType)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim value As String 
+		Dim county As String 
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			value= currRange.string
+			row= currRange.getCellAddress().Row 
+			sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+			sheet.Unprotect(Pwd)
+			oRange = ThisComponent.NamedRanges.getByName(&quot;BodyTypes&quot;)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		    
+			if value&lt;&gt;&quot;&quot; then	
+				sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+				for i=startRowNum to endRowNum
+				 county=sheet.getCellByPosition(4,i).string
+				         If county&lt;&gt;&quot;&quot; then
+				            If county = value then
+				            	ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;).getCellrangeByName(&quot;L&quot;&amp;(row+1)&amp;&quot;:L&quot;&amp;(row+1)).string=Cstr(sheet.getCellByPosition(5,i).string)
+				            	Exit for
+				         	End If
+				         	
+					     End If
+			    Next i
+		    Else
+		    	ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;).getCellrangeByName(&quot;L&quot;&amp;(row+1)&amp;&quot;:L&quot;&amp;(row+1)).string=&quot;&quot;
+		    End If      
+	     End If
+	   	
+	   	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	   	protectsheet(&quot;Data&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;D&quot;,&quot;iBodyType_Listener_&quot;,iBodyType_Listener,iBodyType)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Type Of Car Cost
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Self
+&apos;*************************************
+sub iOwnedHired_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iOwnedHired_Listener,iOwnedHired)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;F&quot;,&quot;iOwnedHired_Listener_&quot;,iOwnedHired_Listener,iOwnedHired)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;F&quot;&amp;(startRowNum+1)&amp;&quot;:F&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim usage as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			usage= currRange.string
+			row= currRange.getCellAddress().Row 
+	
+				If (usage=&quot;Owned&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;OWNED&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+				elseIf (usage=&quot;Hired&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;HIRED&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+				else
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)) 
+				End If
+		End If
+		
+	&apos;***	
+	  	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+	End If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;F&quot;,&quot;iOwnedHired_Listener_&quot;,iOwnedHired_Listener,iOwnedHired)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+	
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_I_Computation_of_Car_BenefitListWife()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;CarBenefit.ListW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(iPinOfEmployerW_Listener,iPinOfEmployerW)
+    call removeKRAListners(iCarRegNumberW_Listener,iCarRegNumberW)
+    call removeKRAListners(iBodyTypeW_Listener,iBodyTypeW)
+    call removeKRAListners(iOwnedHiredW_Listener,iOwnedHiredW)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;A&quot;,&quot;iPinOfEmployerW_Listener_&quot;,iPinOfEmployerW_Listener,iPinOfEmployerW)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;B&quot;,&quot;iCarRegNumberW_Listener_&quot;,iCarRegNumberW_Listener,iCarRegNumberW)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;D&quot;,&quot;iBodyTypeW_Listener_&quot;,iBodyTypeW_Listener,iBodyTypeW)
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;F&quot;,&quot;iOwnedHiredW_Listener_&quot;,iOwnedHiredW_Listener,iOwnedHiredW)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;PINofEmployerCarW&quot;,&quot;CarBenefit.ListW&quot;)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;valueOfCarW&quot;,&quot;CarBenefit.ListW&quot;)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Employer
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Wife
+&apos;*************************************
+sub iPinOfEmployerW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iPinOfEmployerW_Listener,iPinOfEmployerW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;A&quot;,&quot;iPinOfEmployerW_Listener_&quot;,iPinOfEmployerW_Listener,iPinOfEmployerW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim PINNo As String 
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo=UCase(currRange.string)
+			currRange.string=UCase(PINNo)
+			row= currRange.getCellAddress().Row 
+			carValue = sheet.getCellByPosition(1,row).string
+			
+			If PINNo &lt;&gt; &quot;&quot; Then
+			    If (TestPIN(PINNo)) Then
+			    
+					    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+					          	msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+					    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+					    		msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					    		MsgBox msgPinDupWife
+					    Else
+					    	for i=startRowNum to endRowNum
+							
+							 pinCombination=sheet.getCellByPosition(0,i).string
+							 carCombination=sheet.getCellByPosition(1,i).string
+						&apos;	 result = TestDate(dateVal)
+						         if row=i then &apos;Skip
+						         Else
+							         If pinCombination&lt;&gt;&quot;&quot; then
+							            If UCase(pinCombination) = Ucase(PINNo) then
+							            	if UCase(carCombination) = Ucase(carValue) then
+								            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	MsgBox &quot;The Car Registration Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	currRange.string=&quot;&quot;
+							            	end if
+							         	End If
+								     End If    
+								 End If    
+						    Next
+					    End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter PIN of Employer in proper format.&quot;
+		  	    End If
+		     End If
+	     End If   	
+	   	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;A&quot;,&quot;iPinOfEmployerW_Listener_&quot;,iPinOfEmployerW_Listener,iPinOfEmployerW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Car Registration Number
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Wife
+&apos;*************************************
+Sub iCarRegNumberW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iCarRegNumberW_Listener,iCarRegNumberW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;B&quot;&amp;(startRowNum+1)&amp;&quot;:B&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim PRNNo As String 
+		Dim testPRNNo As String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim pinValue as String
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PRNNo= currRange.string
+			currRange.string=Ucase(PRNNo)
+			row= currRange.getCellAddress().Row 
+			pinValue = sheet.getCellByPosition(0,row).string
+			
+			for i=startRowNum to endRowNum
+							
+			 pinCombination=sheet.getCellByPosition(0,i).string
+			 carCombination=sheet.getCellByPosition(1,i).string
+		&apos;	 result = TestDate(dateVal)
+	         if row=i then &apos;Skip
+		         Else
+		         If carCombination&lt;&gt;&quot;&quot; then
+		            If UCase(carCombination) = Ucase(PRNNo) then
+		            	if UCase(pinCombination) = Ucase(pinValue) then
+			            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; PRNNo &amp; &quot; for PIN of Employer &quot; &amp; pinValue &amp; &quot; in Row &quot; &amp; row
+			            	MsgBox &quot;The Car Registration Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+			            	currRange.string=&quot;&quot;
+			           	end if
+			       	End If
+			     End If    
+			 End If    
+			Next
+			
+		    &apos;---Wife Section PRN Comparision
+	   	
+		end If
+		protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	End If
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;B&quot;,&quot;iCarRegNumberW_Listener_&quot;,iCarRegNumberW_Listener,iCarRegNumberW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Body Type
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Wife
+&apos;*************************************
+sub iBodyTypeW_Listener_modified(oEv)
+	if (notCallListener) then
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iBodyTypeW_Listener,iBodyTypeW)
+	
+	&apos;code
+	
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;D&quot;,&quot;iBodyTypeW_Listener_&quot;,iBodyTypeW_Listener,iBodyTypeW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim value As String 
+		Dim county As String 
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			value= currRange.string
+			row= currRange.getCellAddress().Row 
+			sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+			sheet.Unprotect(Pwd)
+			oRange = ThisComponent.NamedRanges.getByName(&quot;BodyTypes&quot;)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+
+			if value&lt;&gt;&quot;&quot; then	
+				sheet=ThisComponent.sheets.getByName(&quot;Data&quot;)
+				for i=startRowNum to endRowNum
+				 county=sheet.getCellByPosition(4,i).string
+				         If county&lt;&gt;&quot;&quot; then
+				            If county = value then
+				            	ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;).getCellrangeByName(&quot;L&quot;&amp;(row+1)&amp;&quot;:L&quot;&amp;(row+1)).string=Cstr(sheet.getCellByPosition(5,i).string)
+				            	Exit for
+				         	End If
+					     End If
+			    Next i
+		    Else
+		    	ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;).getCellrangeByName(&quot;L&quot;&amp;(row+1)&amp;&quot;:L&quot;&amp;(row+1)).string=&quot;&quot;
+		    End If      
+	     End If
+	   	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;) 
+	   	protectsheet(&quot;Data&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;D&quot;,&quot;iBodyTypeW_Listener_&quot;,iBodyTypeW_Listener,iBodyTypeW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Type Of Car Cost
+&apos;I_Computation_of_Car_Benefit
+&apos;Case : Wife
+&apos;*************************************
+sub iOwnedHiredW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(iOwnedHiredW_Listener,iOwnedHiredW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;F&quot;,&quot;iOwnedHiredW_Listener_&quot;,iOwnedHiredW_Listener,iOwnedHiredW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;CarBenefit.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;F&quot;&amp;(startRowNum+1)&amp;&quot;:F&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim usage as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			usage= currRange.string
+			row= currRange.getCellAddress().Row 
+	
+				If (usage=&quot;Owned&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;OWNED&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+				elseIf (usage=&quot;Hired&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;HIRED&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+				else
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)) 
+				End If
+		End If
+		
+	&apos;***	
+	  	protectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+	End If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;F&quot;,&quot;iOwnedHiredW_Listener_&quot;,iOwnedHiredW_Listener,iOwnedHiredW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+</script:module>

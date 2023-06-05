@@ -1,0 +1,2190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module2" script:language="StarBasic">&apos;***********************************
+&apos;COMMON FUNCTIONS
+&apos;***********************************
+
+Public Const msgPinFrmt= &quot;Please enter PIN in proper format.&quot;
+Public Const msgPinDup= &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+Public Const msgPinDupWife= &quot;PIN entered should not be same as Wife&apos;s PIN.&quot;
+Public Const msgDateFrmt= &quot;Please enter date value in dd/mm/yyyy format.&quot;
+Public Const msgEntrPrdDate= &quot;Please enter the dates in Return From and Return Period To in Section A.&quot;
+Public Const msgTaxPeriod = &quot; should be within the Return Period in Section A.&quot;
+Public Const msgFutureDt= &quot; cannot be current/future Date.&quot;
+Public Const msgSaleQty= &quot;Sale Quantity should be less than or equal to Sum of Opening Stock and Purchase.&quot;
+Public Const msgSaleQtyCon = &quot;Sale Quantity should be less than or equal to sum of Opening Stock and Purchase Less Consumption.&quot;
+&apos;Public Const msgSaleQty = &quot;Opening Stock should be less than or equal to Sales Quantity.&quot;
+
+sub ProtectSheet(SheetName as String)
+Dim sPass As String
+   sPass = Pwd
+   Dim oSheet As Object
+      oSheet = ThisComponent.Sheets.getByName(SheetName)
+      oSheet.protect(sPass)
+End Sub
+
+Dim oSheetUploadDlg
+Dim allow as Boolean
+
+Sub AllowUpload
+	allow=true
+	oSheetUploadDlg.endExecute()
+End Sub
+
+Sub DisAllowUpload
+	allow=false
+	oSheetUploadDlg.endExecute()
+End Sub
+
+Sub RunSheetUploadDlg
+   Dim oLib
+   Dim oLibDlg
+   REM Added By Kandarp not to add row in case of Close
+   enteredRow = -1 
+   DialogLibraries.loadLibrary(&quot;Standard&quot;)
+   oLib = DialogLibraries.getByName(&quot;Standard&quot;)
+   oLibDlg = oLib.getByName(&quot;SheetUpload&quot;)
+   oSheetUploadDlg = CreateUnoDialog(oLibDlg)
+   oSheetUploadDlg.execute
+End Sub
+
+sub UnProtectSheet(SheetName as String)
+
+Dim sPass As String
+   sPass =Pwd
+      oSheets = ThisComponent.Sheets
+      oSheet = oSheets.getByName(SheetName)  
+   osheet.unprotect(sPass)
+End Sub
+
+sub Unprotect_Range(SheetName as String,Range as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = False
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			Cell.String = &quot;&quot;
+			&apos;Cell.Cellstyle = &quot;Normal Cell&quot;
+			Cell.CellBackColor=16777215	
+		next j
+	next i
+end sub
+
+
+sub Unprotect_RangeforAmended(SheetName as String,Range as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = False
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			&apos;Cell.Cellstyle = &quot;Normal Cell&quot;
+			Cell.CellBackColor=16777215	
+		next j
+	next i
+end sub
+
+
+Public Sub lockUnlock_cell_rng(shtName AS String, rangeName as String,lockFlag as Boolean)
+   	Dim oCells,CellProtStruc As Object
+	Dim oCellStyle as String
+	Dim oCellBackColor as Long
+	
+	if lockFlag= true then
+		&apos;oCellStyle = &quot;LockCell&quot;
+		oCellBackColor= 12632256
+	Else
+	&apos;	oCellStyle =&quot;Normal Cell&quot;
+		oCellBackColor= 16777215	
+	End If	
+
+	oCells = ThisComponent.Sheets.getByName(shtName).getCellRangeByName(rangeName)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = lockFlag
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(shtName).getCellByPosition(i,j)
+			Cell.String = &quot;&quot;
+			&apos;Cell.Cellstyle = oCellStyle
+			Cell.CellBackColor=oCellBackColor
+		next j
+	next i
+   
+End Sub
+
+Public Sub clearContentFromProtectedFields(shtName AS String, rangeName as String)
+   	Dim oCells,CellProtStruc As Object
+	Dim oCellStyle as String
+	Dim oCellBackColor as Long
+	
+	if lockFlag= true then
+		&apos;oCellStyle = &quot;LockCell&quot;
+		oCellBackColor= 12632256
+	Else
+	&apos;	oCellStyle =&quot;Normal Cell&quot;
+		oCellBackColor= 16777215	
+	End If	
+
+	oCells = ThisComponent.Sheets.getByName(shtName).getCellRangeByName(rangeName)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = true
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(shtName).getCellByPosition(i,j)
+			&apos;Added By Arjun
+			Cell.String = &quot;&quot;
+			Cell.CellBackColor=12632256
+		next j
+	next i
+End Sub
+
+sub Protect_Range(SheetName as String,Range as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = True
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			Cell.String = &quot;&quot;
+			&apos;Cell.Cellstyle = &quot;LockCell&quot;
+			Cell.CellBackColor=12632256
+		next j
+	next i
+end sub
+
+sub Disable(SheetName as String,rng as String)
+	UnProtectSheet(SheetName)
+	Protect_Range(SheetName,rng)
+	ProtectSheet(SheetName)
+end sub
+sub DisableId(SheetName as String,rng as String)
+	UnProtectSheet(SheetName)
+	Protect_RangeId(SheetName,rng)
+	ProtectSheet(SheetName)
+end sub
+
+sub Protect_RangeId(SheetName as String,rng as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(rng)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = True
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+		next j
+	next i
+end sub
+
+sub Enable(SheetName as String,Range as String)
+	UnProtectSheet(SheetName)
+	Unprotect_Range(SheetName,Range)
+	ProtectSheet(SheetName)
+end sub
+
+sub EnableId(SheetName as String,Range as String)
+	UnProtectSheet(SheetName)
+	Unprotect_RangeId(SheetName,Range)
+	ProtectSheet(SheetName)
+end sub
+
+sub Unprotect_RangeId(SheetName as String,Range as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = False
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+		next j
+	next i
+end sub
+
+
+sub DisableValue(SheetName as String,Range as String)
+	UnProtectSheet(SheetName)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = True
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			Cell.String = &quot;&quot;
+			Cell.cellStyle = &quot;LockCell&quot;
+		next j
+	next i
+	ProtectSheet(SheetName)
+end sub
+
+sub clearContents(SheetName as String, rangeName as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			Cell.String = &quot;&quot;
+		next j
+	next i
+end sub
+
+sub setComboBox(listName As String,rangeName as String,columnNo As Long) 
+  Dim startRow as Integer
+  Dim startCol as Integer
+  Dim endCol as Integer
+  Dim endRow as  Integer 
+  Dim i as Integer
+  Dim cellRange As object
+  Dim  sheetName As String
+  Dim rangeAddress As Object
+Dim str As String
+  oRange=ThisComponent.NamedRanges.getByName(rangeName)
+  rangeAddress = oRange.getReferredCells().getRangeAddress()
+  startRow=rangeAddress.startRow
+  startCol=rangeAddress.startColumn
+  endRow=rangeAddress.endRow  
+  endCol=rangeAddress.endColumn
+  sheetName=rangeAddress.sheet
+	ThisComponent.sheets.getByIndex(sheetName).Unprotect(Pwd)
+	 cellRange = ThisComponent.sheets.getByIndex(sheetName).getCellRangeByPosition(columnNo,startRow,columnNo,endRow) 
+	 oProps = cellRange.Validation 
+     oProps.setPropertyValue(&quot;Type&quot;,com.sun.star.sheet.ValidationType.LIST) 
+       oProps.Formula1 = listName
+     cellRange.Validation = oProps 
+	ThisComponent.sheets.getByIndex(sheetName).protect(Pwd)   
+end sub
+
+sub setComboBoxByType(listName As String,rangeName as String,columnNo As Long,rowNo as Long) 
+  Dim startRow as Integer
+  Dim startCol as Integer
+  Dim endCol as Integer
+  Dim endRow as  Integer 
+  Dim i as Integer
+  Dim cellRange As object
+  Dim  sheetName As String
+  Dim rangeAddress As Object
+Dim str As String
+  oRange=ThisComponent.NamedRanges.getByName(rangeName)
+  rangeAddress = oRange.getReferredCells().getRangeAddress()
+  startRow=rangeAddress.startRow
+  startCol=rangeAddress.startColumn
+  endRow=rangeAddress.endRow  
+  endCol=rangeAddress.endColumn
+  sheetName=rangeAddress.sheet
+	ThisComponent.sheets.getByIndex(sheetName).Unprotect(Pwd)
+	
+	 cellRange = ThisComponent.sheets.getByIndex(sheetName).getCellRangeByPosition(columnNo,rowNo,columnNo,rowNo) 
+	 oProps = cellRange.Validation 
+     oProps.setPropertyValue(&quot;Type&quot;,com.sun.star.sheet.ValidationType.LIST) 
+       oProps.Formula1 = listName
+     cellRange.Validation = oProps 
+	ThisComponent.sheets.getByIndex(sheetName).protect(Pwd)   
+end sub
+
+
+Sub getNamedRanges 
+   Dim oDoc As Object 
+   oDoc = ThisComponent 
+   oRanges = oDoc.NamedRanges 
+   Nomes = oRanges.getElementNames() 
+   msg=&quot;&quot; 
+   For i=LBound(Nomes) To UBound(Nomes) 
+      msg=msg+Nomes(i)+chr(10) 
+   Next i 
+   MsgBox msg 
+End Sub 
+
+Function gotoPrevSheet()
+	ThisComponent.CurrentController.ActiveSheet
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+   	oSheets = ThisComponent.Sheets() 
+
+   	for a = 1 to oSheets.Count()-1 
+    	if oSheets(a).Name = oSheet.Name then 
+	    	if oSheets(a-1).isVisible = True then
+		    	ThisComponent.CurrentController.setActiveSheet(oSheets(a-1))
+		    	REM added by maulika to point the cursor to first active cell : START
+    			for m = 0 to 10
+		    		for n=0 to 5
+		    			oSheet = ThisComponent.CurrentController.getActiveSheet() 
+		    			if oSheet.getCellByPosition(n,m).CellProtection.isLocked = False then
+		    				ThisComponent.CurrentController.Select(oSheet.getCellByPosition(n,m))	
+		    				Exit function
+		    			end if
+		    		next n
+		    	next m
+				REM added by maulika to point the cursor to first active cell : END
+		    	Exit Function
+		    else
+		    	for j = (a-1) to (1) step -1
+		    		if  oSheets(j).isVisible = True then
+		    			ThisComponent.CurrentController.setActiveSheet(oSheets(j))
+		    			REM added by maulika to point the cursor to first active cell : START
+		    			for m = 0 to 10
+				    		for n=0 to 5
+				    			oSheet = ThisComponent.CurrentController.getActiveSheet() 
+				    			if oSheet.getCellByPosition(n,m).CellProtection.isLocked = False then
+				    				ThisComponent.CurrentController.Select(oSheet.getCellByPosition(n,m))	
+				    				Exit function
+				    			end if
+				    		next n
+				    	next m
+				    	REM added by maulika to point the cursor to first active cell : END
+		    			Exit Function
+		    		end if
+		    	next j
+		    	a = j
+		    end if
+    	end if
+   	next 	
+	&apos;oSheet = ThisComponent.Sheets.getByName(&quot;shtName&quot;)
+	&apos;ThisComponent.CurrentController.setActiveSheet(oSheet)
+end function
+
+
+Function gotoSheet() 	
+	ThisComponent.CurrentController.ActiveSheet
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+   	oSheets = ThisComponent.Sheets() 
+
+   	for a = 0 to oSheets.Count()-1 
+    	if oSheets(a).Name = oSheet.Name then 
+    	ThisComponent.CurrentController.setActiveSheet(oSheets(a+1))
+    	for i = 0 to 10
+    		for j=0 to 5
+    			oSheet = ThisComponent.CurrentController.getActiveSheet() 
+    			if oSheet.getCellByPosition(j,i).CellProtection.isLocked = False then
+    				ThisComponent.CurrentController.Select(oSheet.getCellByPosition(j,i))	
+    				Exit function
+    			end if
+    		next j
+    	next i
+    	Exit Function
+    	end if
+   	next 	
+	&apos;oSheet = ThisComponent.Sheets.getByName(&quot;shtName&quot;)
+	&apos;ThisComponent.CurrentController.setActiveSheet(oSheet)
+End Function
+
+Public Sub InsertRowsAndFillFormulas(rangeName As String)
+    Dim vRows As Long
+    vRows = 0
+    On Error GoTo Errorcatch
+  
+    &apos; ActiveCell.EntireRow.Select  &apos;So you do not have to preselect entire row
+    &apos;ThisComponent.CurrentController.ActiveSheet.getCellRangeByName(&quot;B26&quot;).value
+	Dim ActiveSheet as Object
+    ActiveSheet = ThisComponent.CurrentController.ActiveSheet
+    enteredRow = 1
+    Call RunTextUtilsDlg
+    vRows = enteredRow
+    If vRows = 0 Then
+   		MsgBox &quot;Please Enter Value Greater then Zero&quot;
+        Exit Sub
+    End If
+    If vRows = -1 Then
+        Exit Sub
+    End If
+    &apos; @Author   Kandarp Doshi (194714) and Kalpesh Chaniyara
+    &apos; This Function/Sub routine workes by row selection based on Range Name
+    
+    Dim startRow As Long, endRow As Long
+    &apos;get the start row number from the range name
+    &apos;Dim oRange as Object
+    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+    Dim rangeAddress As Object
+    rangeAddress = oRange.getReferredCells().getRangeAddress()
+    startRow = rangeAddress.StartRow + 1
+    endRow = rangeAddress.EndRow + 1
+	&apos; Insert the rows after the end of the range
+	ActiveSheet.Unprotect (Pwd)
+    ActiveSheet.getRows.insertByIndex(endRow,vRows)
+    Dim oRowSourceAdd As Object
+    Dim oRowSource As Object
+	Dim aAddressTarget As New com.sun.star.table.CellAddress
+
+   oRowSource = ActiveSheet.getRows().getByIndex(rangeAddress.EndRow)
+   
+   for i=1 to vRows
+   	aAddressTarget = ActiveSheet.getCellByPosition(0, rangeAddress.EndRow+i).getCellAddress()
+   	ActiveSheet.copyRange(aAddressTarget, oRowSource.getRangeAddress())
+   	oRowSourceAdd=ActiveSheet.getRows().getByIndex(rangeAddress.EndRow+i)
+   	oRowSourceAdd.clearContents( _
+		com.sun.star.sheet.CellFlags.VALUE _
+		+com.sun.star.sheet.CellFlags.STRING _
+		+com.sun.star.sheet.CellFlags.DATETIME)
+   Next
+
+    
+  	
+   	Dim newRangeAddr as String
+   
+    newRangeAddr = &quot;$&apos;&quot; + ActiveSheet.Name + &quot;&apos;.$&quot; + ColumnNumberToString(rangeAddress.StartColumn) + &quot;$&quot; +startRow + &quot;:$&quot; +_
+   		+ ColumnNumberToString(rangeAddress.EndColumn) + &quot;$&quot;+(endRow+vRows) 
+   
+   &apos;	newRangeAddr = &quot;&apos;&quot; + ActiveSheet.Name + &quot;&apos;.&quot; + ColumnNumberToString(rangeAddress.StartColumn) + startRow + &quot;:&quot; +_
+   &apos;		+ ColumnNumberToString(rangeAddress.EndColumn) + (endRow+vRows) 
+	oRange.getReferredCells().getRangeAddress().EndRow = endRow + vRows
+   	Dim oCellAddress As new com.sun.star.table.CellAddress
+    oCellAddress.Sheet = rangeAddress.Sheet     &apos;The first sheet.
+    oCellAddress.Column = rangeAddress.StartColumn    &apos;Column B.
+    oCellAddress.Row = rangeAddress.StartRow       &apos;Row 3.
+   	ThisComponent.NamedRanges.removeByName(rangeName)
+   	ThisComponent.NamedRanges.addNewByName(rangeName,newRangeAddr, oCellAddress, 0)
+     
+    On Error Resume Next
+        Selection.Offset(1).Resize(vRows).EntireRow. _
+           SpecialCells(xlConstants).ClearContents
+	ActiveSheet.Protect (Pwd)     
+    Exit Sub
+	Errorcatch:
+	MsgBox &quot;Error&quot; 
+	ActiveSheet.Protect (Pwd)     
+End Sub
+
+Public Sub InsertRowsAndFillFormulasWithRangeChange(rangeName As String,listName As String)
+	Dim Str as String
+
+      Dim vRows As Long
+    vRows = 0
+    On Error GoTo Errorcatch
+  
+    &apos; ActiveCell.EntireRow.Select  &apos;So you do not have to preselect entire row
+    &apos;ThisComponent.CurrentController.ActiveSheet.getCellRangeByName(&quot;B26&quot;).value
+	Dim ActiveSheet as Object
+    ActiveSheet = ThisComponent.CurrentController.ActiveSheet
+    enteredRow = 1
+    Call RunTextUtilsDlg
+    vRows = enteredRow
+    If vRows = 0 Then
+   		MsgBox &quot;Please Enter Value Greater then Zero&quot;
+        Exit Sub
+    End If
+    If vRows = -1 Then
+        Exit Sub
+    End If
+    &apos; @Author   Kandarp Doshi (194714) and Kalpesh Chaniyara
+    &apos; This Function/Sub routine workes by row selection based on Range Name
+    
+    Dim startRow As Long, endRow As Long
+    &apos;get the start row number from the range name
+    &apos;Dim oRange as Object
+    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+    Dim rangeAddress As Object
+    rangeAddress = oRange.getReferredCells().getRangeAddress()
+    startRow = rangeAddress.StartRow + 1
+    endRow = rangeAddress.EndRow + 1
+	&apos; Insert the rows after the end of the range
+	ActiveSheet.Unprotect (Pwd)
+    ActiveSheet.getRows.insertByIndex(endRow,vRows)
+ 
+   	Dim newRangeAddr as String
+   	newRangeAddr = &quot;&apos;&quot; + ActiveSheet.Name + &quot;&apos;.&quot; + ColumnNumberToString(rangeAddress.StartColumn) + startRow + &quot;:&quot; +_
+   		+ ColumnNumberToString(rangeAddress.EndColumn) + (endRow+vRows) 
+	oRange.getReferredCells().getRangeAddress().EndRow = endRow + vRows
+   	Dim oCellAddress As new com.sun.star.table.CellAddress
+    oCellAddress.Sheet = rangeAddress.Sheet     &apos;The first sheet.
+    oCellAddress.Column = rangeAddress.StartColumn    &apos;Column B.
+    oCellAddress.Row = rangeAddress.StartRow       &apos;Row 3.
+   	ThisComponent.NamedRanges.removeByName(rangeName)
+   	ThisComponent.NamedRanges.addNewByName(rangeName,newRangeAddr, oCellAddress, 0)
+     
+    On Error Resume Next
+        Selection.Offset(1).Resize(vRows).EntireRow. _
+            SpecialCells(xlConstants).ClearContents
+  
+    &apos;CODE To Add Rows In ETR No List
+	ActiveSheet.Unprotect (Pwd)
+	Dim oRange2 as  Object
+    oRange2 = ThisComponent.NamedRanges.getByName(listName) 
+     Dim rangeAddress2 As Object
+    rangeAddress2 = oRange2.getReferredCells().getRangeAddress()
+    startRow = rangeAddress2.StartRow + 1
+    endRow = rangeAddress2.EndRow + 1
+
+	newRangeAddr = &quot;$&apos;&quot; + ActiveSheet.Name + &quot;&apos;.$&quot; + ColumnNumberToString(rangeAddress2.StartColumn) + &quot;$&quot; +startRow + &quot;:$&quot; +_
+   		+ ColumnNumberToString(rangeAddress2.StartColumn) + &quot;$&quot;+(endRow+vRows) 
+   	&apos;newRangeAddr = &quot;&apos;&quot; + ActiveSheet.Name + &quot;&apos;.&quot; + ColumnNumberToString(rangeAddress2.StartColumn) + startRow + &quot;:&quot; +_
+   	&apos;	+ ColumnNumberToString(rangeAddress2.StartColumn) + (endRow+vRows) 
+	oRange2.getReferredCells().getRangeAddress().EndRow = endRow + vRows
+   
+    Dim oCellAddress2 As new com.sun.star.table.CellAddress
+    oCellAddress2.Sheet = rangeAddress2.Sheet     &apos;The first sheet.
+    oCellAddress2.Column = rangeAddress2.StartColumn    &apos;Column B.
+    oCellAddress2.Row = rangeAddress2.StartRow       &apos;Row 3.
+ 
+
+   
+    ThisComponent.NamedRanges.removeByName(listName)
+	ThisComponent.NamedRanges.addNewByName(listName,newRangeAddr, oCellAddress2, 0)
+   	   	
+   	ActiveSheet.Protect (Pwd)   
+    Exit Sub
+	Errorcatch:
+	MsgBox &quot;Error&quot; 
+   
+End Sub
+public sub resetSpecificRangeWithList(shtName as String,rangeName as String, listName As String)
+	UnprotectSheet(shtName)
+
+	Dim oRange2 as  Object
+	Dim oRange1 as  Object
+	Dim newRangeAddr as String
+    oRange1 = ThisComponent.NamedRanges.getByName(listName) 
+    oRange2 = ThisComponent.NamedRanges.getByName(rangeName) 
+    Dim rangeAddress1 As Object
+    rangeAddress1 = oRange1.getReferredCells().getRangeAddress()
+    startRow = rangeAddress1.StartRow + 1
+    endRow = rangeAddress1.EndRow + 1
+    
+    Dim rangeAddress2 As Object
+    rangeAddress2 = oRange2.getReferredCells().getRangeAddress()
+   &apos; startRow = rangeAddress2.StartRow + 1
+    &apos;endRow = rangeAddress2.EndRow + 1
+
+	newRangeAddr = &quot;$&apos;&quot; + shtName + &quot;&apos;.$&quot; + ColumnNumberToString(rangeAddress2.StartColumn) + &quot;$&quot; +startRow + &quot;:$&quot; +_
+   		+ ColumnNumberToString(rangeAddress2.StartColumn) + &quot;$&quot;+(endRow) 
+ 
+	oRange2.getReferredCells().getRangeAddress().EndRow = endRow
+   
+    Dim oCellAddress2 As new com.sun.star.table.CellAddress
+    oCellAddress2.Sheet = rangeAddress2.Sheet     &apos;The first sheet.
+    oCellAddress2.Column = rangeAddress2.StartColumn    &apos;Column B.
+    oCellAddress2.Row = rangeAddress2.StartRow       &apos;Row 3.
+ 
+    ThisComponent.NamedRanges.removeByName(rangeName)
+	ThisComponent.NamedRanges.addNewByName(rangeName,newRangeAddr, oCellAddress2, 0)
+   	   	
+   	ProtectSheet(shtName)
+
+
+End Sub
+Function ColumnNumberToString(ByVal nColumn As Long) As String
+	Dim s As String
+	Do While nColumn &gt;= 0
+		s = Chr$(65 + (nColumn MOD 26)) &amp; s
+		nColumn = nColumn \ 26 - 1
+	Loop
+	ColumnNumberToString = s
+End Function
+
+Dim oTextUtilsDlg
+Dim enteredRow As Long
+Sub RunTextUtilsDlg
+   Dim oLib
+   Dim oLibDlg
+   REM Added By Kandarp not to add row in case of Close
+   enteredRow = -1 
+   DialogLibraries.loadLibrary(&quot;Standard&quot;)
+   oLib = DialogLibraries.getByName(&quot;Standard&quot;)
+   oLibDlg = oLib.getByName(&quot;KRAUtils&quot;)
+   oTextUtilsDlg = CreateUnoDialog(oLibDlg)
+   oTextUtilsDlg.execute
+   
+End Sub
+
+Sub ExitTextUtilsDlg
+	enteredRow = -1
+   oTextUtilsDlg.endExecute()
+End Sub
+
+Sub TextUtils
+   enteredRow = oTextUtilsDlg.getModel().getByName(&quot;AddDeleteRows&quot;).Value
+   oTextUtilsDlg.endExecute()
+End Sub
+
+Public Sub lock_cell_rng(cursheet As String, vrange As String)
+  
+	  Dim numRows As Integer, i As Integer
+	  
+	  numRows = 0
+	  i = 0
+	  
+	  Application.ScreenUpdating = False
+	  Worksheets(cursheet).Activate
+	  ActiveSheet.Unprotect Password:=Pwd
+	  ActiveSheet.Range(vrange).Select
+	  Selection.ClearContents
+	  Selection.Locked = True
+	      
+	   numRows = Range(vrange).Rows.Count
+	  
+	    Do While i &lt; numRows
+	       With ActiveCell.Interior
+	          .ColorIndex = 15
+	          .Pattern = xlSolid
+	          .PatternColorIndex = xlAutomatic
+	       End With
+	      ActiveCell.Offset(1, 0).Select
+	      i = i + 1
+	    Loop
+	  ActiveSheet.Protect Password:=Pwd
+	  Application.ScreenUpdating = True
+  End Sub
+
+ Public Sub unlock_cell_rng(cursheet As String, vrange As String)
+	 Dim oSheet As Object
+	  Dim numRows As Integer, i As Integer
+	  numRows = 0
+	  i = 0
+
+	 oSheet=ThisComponent.Sheets.getByName(cursheet)
+	 &apos; Worksheets(cursheet).Activate
+&apos;	  ActiveSheet.Unprotect Password:=password
+	oSheet.Unprotect(password)
+	  oSheet.Range(vrange).Select
+	  Selection.Locked = False
+	    
+	  numRows = Range(vrange).Rows.Count
+	  Do While i &lt; numRows
+	       With ActiveCell.Interior
+	          .ColorIndex = 2
+	          .Pattern = xlSolid
+	          .PatternColorIndex = xlAutomatic
+	       End With
+	    ActiveCell.Offset(1, 0).Select
+	    i = i + 1
+	    Loop
+	   &apos; ActiveSheet.Range(vrange).Rows.Value = &quot;&quot;
+	  
+	  ActiveSheet.Protect Password:=&quot;P@ssw0rd&quot;
+	  Application.ScreenUpdating = True
+  End Sub
+  
+Public Sub resetRtnYrComboBox(shtName as String,colNum as String,startYr as long)
+    Dim yrRange As String
+    Dim startRowNum As Integer
+    Dim endRowNum As Integer
+    Dim currYr As Long
+    Dim lastyer As integer
+    Dim yflag As Boolean
+    Dim sheet as Object
+
+    sheet=ThisComponent.sheets.getByName(shtName)
+    oRange = ThisComponent.NamedRanges.getByName(&quot;RtnYear&quot;)
+    currYr = Format(Now(), &quot;yyyy&quot;)
+    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+    Unprotectsheet(shtName)
+   if sheet.getCellrangeByName(colNum &amp; (endRowNum+1) &amp; &quot;:&quot; &amp; colNum &amp; (endRowNum+1)).value &lt; currYr then
+    for i = sheet.getCellrangeByName(colNum &amp; (endRowNum+1) &amp; &quot;:&quot; &amp; colNum &amp; (endRowNum+1)).value to currYr
+    	vrows = vrows + 1
+		sheet.getCellrangeByName(colNum &amp; (endRowNum+vrows) &amp; &quot;:&quot; &amp; colNum &amp; (endRowNum+vrows)).value= sheet.getCellrangeByName(colNum &amp; (endRowNum+vrows-1) &amp; &quot;:&quot; &amp; colNum &amp; (endRowNum+vrows-1)).value +1
+    next
+   	Dim rangeAddress As Object
+   	rangeAddress = oRange.getReferredCells().getRangeAddress()
+   
+   	Dim newRangeAddr as String
+   
+   	 newRangeAddr = &quot;$&apos;&quot; + Sheet.Name + &quot;&apos;.$&quot; + colNum + &quot;$&quot; +(startRowNum + 1 ) + &quot;:$&quot; +_
+   		+ colNum + &quot;$&quot;+(endRowNum + vrows ) 
+		oRange.getReferredCells().getRangeAddress().EndRow = endRowNum + vrows-1
+   		Dim oCellAddress As new com.sun.star.table.CellAddress
+   		oCellAddress.Sheet = rangeAddress.Sheet     &apos;The first sheet.
+    	oCellAddress.Column = rangeAddress.StartColumn    &apos;Column B.
+    	oCellAddress.Row = rangeAddress.StartRow       &apos;Row 3.
+   		ThisComponent.NamedRanges.removeByName(&quot;RtnYear&quot;)
+   		ThisComponent.NamedRanges.addNewByName(&quot;RtnYear&quot;,newRangeAddr, oCellAddress, 0)
+   
+   
+   End If
+   
+   	
+       protectsheet(shtName)
+    &apos;Worksheets(shtName).Protect (Pwd)
+    
+End Sub  
+Function getLastDay(EnteredDate As String) As Integer
+	getLastDay = -1
+	Dim i as Integer
+	if Len(Trim(EnteredDate)) &lt;&gt; 10 and Len(Trim(EnteredDate)) &lt;&gt; 0 then
+		getLastDay = -1
+	else
+		for i= 1 to Len(EnteredDate)
+			curChar = (Mid(EnteredDate, i, 1))
+			if i = 3 or i = 6 then
+				Select Case (curChar)
+					Case &quot;/&quot;
+					Case Else
+						getLastDay = -1
+						goto nomoreValidation
+				end select
+			else
+				Select Case (curChar)
+					Case &quot;0&quot; To &quot;9&quot;
+					Case Else
+						getLastDay = -1
+						goto nomoreValidation
+				end select
+			end if
+		Next i	
+	end if
+	enDate = Int((Mid(EnteredDate, 1, 2)))
+	enMonth = Int((Mid(EnteredDate, 4, 2)))
+	enYear = Int((Mid(EnteredDate, 7,4)))
+	yearMod = INT(enYear / 4)
+	if (yearMod * 4)  &lt;&gt; enYear then
+
+		if enMonth &gt; 12 then
+			getLastDay = -1
+		else
+			if enMonth &lt;&gt; 2 then
+				if enMonth = 1 or enMonth = 3 or enMonth = 5 or enMonth= 7 or enMonth = 8 or enmonth = 10 or enmonth = 12 then
+						getLastDay = 31
+						goto nomoreValidation
+				else
+						getLastDay = 30
+						goto nomoreValidation
+				end if
+			else
+					getLastDay = 28
+					goto nomoreValidation
+			end if
+		end if
+	else
+		if enMonth &gt; 12 then
+			getLastDay = -1
+		else
+			if enMonth &lt;&gt; 2 then
+				if enMonth = 1 or enMonth = 3 or enMonth = 5 or enMonth= 7 or enMonth = 8 or enmonth = 10 or enmonth = 12 then
+						getLastDay=31
+						goto nomoreValidation
+				else
+						getLastDay = 30
+						goto nomoreValidation
+				end if
+			else
+					getLastDay = 29
+					goto nomoreValidation
+			end if
+		end if
+	end if
+	nomoreValidation:
+end Function 
+
+&apos;Method Created By Janhavi Bhokri On 12.12.2011
+&apos;This methods reads the amendment sheet where the string structure of logical names and its values are appended.
+&apos;This method parse the string and fills the single cell data values to the corresponding cells.
+&apos;Method internally calls the fillListDataInFields which fills data in list (Schedules)
+
+Public Sub fillDataInFields(amendmentSheet As String)
+
+notCall= True
+&apos;Declare Seperators
+Dim PROP_SEP As String
+PROP_SEP = &quot;@P_@&quot;
+
+Dim CLASS_SEP As String
+CLASS_SEP = &quot;#C_@&quot;
+
+Dim VALUE_SEP As String
+VALUE_SEP = &quot;%V_@&quot;
+
+Dim amndmntSht as Object
+Dim oSheet as Object
+amndmntSht =ThisComponent.sheets.getByName(amendmentSheet)
+
+&apos;main declaration for multi cell column parsing at amendment
+prevCellBreakCounterEndRow=0
+
+If amndmntSht.getCellByPosition(0, 0).string = &quot;&quot; And amndmntSht.getCellByPosition(0, 1).string = &quot;&quot; Then
+     &apos;Add Sheet Code
+     &apos;MsgBox &quot;No Data Available To fill in the fields.&quot;
+     Exit Sub
+Else
+   	ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))
+    amndmntSht.Unprotect (Pwd)
+    For i = 0 To ThisComponent.Sheets.Count - 1
+       	oSheet = ThisComponent.sheets.getByIndex(i)		
+		oSheet.unprotect (Pwd)
+     Next
+    
+    
+    
+    
+    Dim singleCellDataStr As String
+    Dim listDataStr As String
+    Dim cellPropDataPairArr As Object
+    Dim cellPropDataPair As Object
+    Dim noData As Integer
+    Dim singleCellObj as Object
+    Dim multiCellObj as Object   
+    Dim currSheet As Object
+    Dim currRange as Object
+    Dim colLength as Integer
+    
+    For colLength = 0 To 256
+    	If(amndmntSht.getCellByPosition(colLength,0).getType() = EMPTYCELLTYPE) Then
+    		Exit For
+    	End If	
+    singleCellDataStr = amndmntSht.getCellByPosition(colLength,0).String &apos;Selection.value
+    amndmntSht.getCellByPosition(colLength,0).String = &quot;&quot;
+    singleCellObj = amndmntSht.getCellByPosition(colLength,0)
+    If singleCellDataStr = &quot;&quot; Then
+             
+     &apos;do Nothing
+    Else
+                
+      
+        
+      cellPropDataPairArr = Split(singleCellDataStr, PROP_SEP) &apos;This gives Array of property name Value pair
+        For i = 0 To UBound(cellPropDataPairArr) &apos;Loop of prop Value pairs starts
+               If cellPropDataPairArr(i) &lt;&gt; &quot;&quot; Then
+                 cellPropDataPair = Split(cellPropDataPairArr(i), VALUE_SEP) &apos;This gives array of size 2 where 0 index has logical name and 1 has its corresponding value
+                   If UBound(cellPropDataPair) = 1 Then
+                        Dim rng As Object
+                        If cellPropDataPair(0) &lt;&gt; &quot;&quot; And cellPropDataPair(1) &lt;&gt; &quot;&quot; Then
+                            
+                            &apos;Code to activate Sheet where given range is referenced
+                         if thiscomponent.namedranges.hasByName(Trim(cellPropDataPair(0))) then 
+  							On Error GoTo ExtraMappingErrorHandle
+                        	currRange = ThisComponent.NamedRanges.getByName(cellPropDataPair(0)) 
+                            oCells=currRange.getReferredCells().getCellByPosition(0,0)
+			    			CellProtStruc = oCells.CellProtection
+				    		
+	                          If CellProtStruc.isLocked = True  And InStr(1, currRange.getReferredCells().FormulaLocal, &quot;=&quot;) = 1 Then
+	                            &apos;do nothing
+	                            
+				 				&apos;Code to Activate the Sheet for updation            
+				                currentWorkSheet=thisComponent.Sheets.getByIndex(currRange.getReferredCells().getRangeAddress().sheet)
+							    ThisComponent.CurrentController.setActiveSheet(currentWorkSheet)
+			    	                            
+	                             &apos;************************************************
+                                   &apos;Code added by janhavi to check whether given formula is of type lookup code if
+                                   &apos; it is then reverse mapping is done and the lookupName is fetched from LookupCode
+                                   &apos; using the formula given
+		                                Dim formulaStr as String
+	                                  	Dim oSetRange as Object
+	                              		Dim data as Object
+	                                  	Dim lookupName As String
+	                                  	formulaStr= oCells.FormulaLocal
+	    
+		                                   &apos;Case 1 if formulaStr is: Lookup()
+		                                   if(Instr(1,formulaStr,&quot;=IF(ISERROR(LOOKUP(&quot;)=1) then
+		                                  	if cellPropDataPair(0) = &quot;BankDtl.BranchName&quot; then
+		                    					data = getLookupData(formulaStr)
+		                    					oSetRange=currentWorkSheet.getCellrangeByName(data(0) &amp; &quot;:&quot; &amp; data(0))
+		                    					lookupName =getValueFromLookupCode(cellPropDataPair(1),&quot;BranchName&quot;,&quot;BranchId&quot;)
+		                    					ThisComponent.CurrentController.Select(oSetRange)
+			                                  	   if TestNumber(lookupName) OR validateCurrencyFormat(lookupName) then
+						                          	   currentWorkSheet.unprotect(Pwd)
+						                          	    oSetRange.value = CDbl(lookupName)                          	
+						                          	Else
+						                          	currentWorkSheet.unprotect(Pwd)
+													oSetRange.string = lookupName
+					    	                        End If	
+		                                  	else
+		                                  		data = getLookupData(formulaStr)
+		                                  		oSetRange=currentWorkSheet.getCellrangeByName(data(0) &amp; &quot;:&quot; &amp; data(0))
+			                                  	lookupName =getValueFromLookupCode(cellPropDataPair(1),data(1),data(2))
+			                                  	 ThisComponent.CurrentController.Select(oSetRange)
+			                                  	   if TestNumber(lookupName) OR validateCurrencyFormat(lookupName) then
+						                          	   currentWorkSheet.unprotect(Pwd)
+						                          	    oSetRange.value = CDbl(lookupName)                          	
+						                          	Else
+						                          	currentWorkSheet.unprotect(Pwd)
+													oSetRange.string = lookupName
+					    	                        End If	
+		                                  	end if
+		                                   End If
+                                   
+                                   &apos;*************************************************
+                              ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))   
+	                          Else
+	                          	if TestNumber(cellPropDataPair(1)) OR validateCurrencyFormat(cellPropDataPair(1)) or validateExpoFormat(cellPropDataPair(1)) then
+	                          	    currRange.getReferredCells().value= CDbl(cellPropDataPair(1))
+	                          	Else
+	                            	currRange.getReferredCells().String = cellPropDataPair(1)
+	                            End If	
+	                          End If
+                         End If 
+                        End If
+                   End If
+               End If
+               ExtraMappingErrorHandleResolved:
+               On Error GoTo 0 &apos; inactivate my error handler 
+        Next i &apos;Loop of prop Value pairs Ends here
+    End If
+   Next &apos;Multicolumn data capture 
+
+
+&apos;Code to be added
+	For colLength = 0 To 256
+    	If(amndmntSht.getCellByPosition(colLength,1).getType() = EMPTYCELLTYPE) Then
+    		Exit For
+    	End If	
+	listDataStr = amndmntSht.getCellByPosition(colLength,1).String &apos;Selection.value
+    amndmntSht.getCellByPosition(colLength,1).String = &quot;&quot;
+    multiCellObj = amndmntSht.getCellByPosition(colLength,1)
+    If listDataStr = &quot;&quot; Then
+    	&apos;do nothing
+    Else
+       Call fillListDataInFields(listDataStr,amendmentSheet)
+       
+    End If
+    Next &apos;Multicolumn data capture 
+    
+    Dim sheet as Object
+	Dim msgStr As String
+	Dim DeclareExemptionCertiS as String
+	
+	sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+	DeclareExemptionCertiS= sheet.getCellrangeByName(&quot;RetInf.DeclareExemptionCerti&quot;).string
+	DeclareExemptionCertiW= sheet.getCellrangeByName(&quot;RetInf.DeclareWifeExemptionCerti&quot;).string
+    
+ 	If (DeclareExemptionCertiS=&quot;Yes&quot;) Then
+			Unprotect_RangeforAmended(&quot;A_Basic_Info&quot;,&quot;ExemptCertiS&quot;)
+	END If
+	If (DeclareExemptionCertiW=&quot;Yes&quot;) Then
+			Unprotect_RangeforAmended(&quot;A_Basic_Info&quot;,&quot;ExemptCertiW&quot;)
+	END If		
+    
+    For i = 0 To ThisComponent.Sheets.Count - 1
+       	oSheet = ThisComponent.sheets.getByIndex(i)		
+		oSheet.protect (Pwd)
+    Next
+    
+End If 
+
+Exit Sub
+
+ExtraMappingErrorHandle:
+    Resume ExtraMappingErrorHandleResolved
+   
+End Sub
+
+sub resetDataFields
+
+Dim sheet as Object
+Dim WifeIncomeChoice as String
+Dim lockCell as Boolean
+  notCallListener=true
+	&apos;For Toggle Fields
+	&apos;	sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+	&apos;	WifeIncomeChoice= sheet.getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+	&apos;	If (WifeIncomeChoice=&quot;No&quot;) Then
+	&apos;		lockCell = True
+	&apos;		call toggleSpouseFields(lockCell)
+	&apos;	End If
+	&apos;For Insurannce relief
+	Call resetAuditDate()
+	Call resetAgeOfChild(&quot;InsReliefDtls.ListS&quot;)
+	Call resetAgeOfChild(&quot;InsReliefDtls.ListW&quot;)
+	Call resetOnUsageToggle(&quot;VehicleAdvTaxPaid.ListS&quot;)
+	Call resetOnUsageToggle(&quot;VehicleAdvTaxPaid.ListW&quot;)
+	Call resetDataOnToggleOwnHire(&quot;CarBenefit.ListS&quot;)
+	Call resetDataOnToggleOwnHire(&quot;CarBenefit.ListW&quot;)		
+  	Call resetOnDateOfFirstUse(&quot;IniAllIBD.ListPart2S&quot;)
+	Call resetOnDateOfFirstUse(&quot;IniAllIBD.ListPart2W&quot;)
+	Call resetOnDateOfFirstUseRate(&quot;DeprIntengAst.ListS&quot;)
+	Call resetOnDateOfFirstUseRate(&quot;DeprIntengAst.ListW&quot;)
+	Call resetPRNNumber(&quot;InstallmentTax.ListS&quot;,&quot;N_Installment_Tax_Credits&quot;)
+	Call resetPRNNumber(&quot;InstallmentTax.ListW&quot;,&quot;N_Installment_Tax_Credits&quot;)
+	Call resetPRNNumber(&quot;DtlIncomePaid.IncomePaidAdvanceListS&quot;,&quot;Q_IT_Payment_Credits&quot;)
+	Call resetPRNNumber(&quot;DtlIncomePaid.IncomePaidAdvanceListW&quot;,&quot;Q_IT_Payment_Credits&quot;)
+	Call resetPRNNumber(&quot;DtlIncomePaid.IncomePaidSelfAssmntListS&quot;,&quot;Q_IT_Payment_Credits&quot;)
+	Call resetPRNNumber(&quot;DtlIncomePaid.IncomePaidSelfAssmntListW&quot;,&quot;Q_IT_Payment_Credits&quot;)
+	Call BankReset()
+	Call resetWifeChoice()
+	call resetSpecificRangeWithList(&quot;F_Employment_Income&quot;,&quot;PINofEmployerS&quot;,&quot;EmpIncome.ListS&quot;)
+	Call resetDataValidity(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListS&quot;,&quot;A&quot;,&quot;PINofEmployerS&quot;)
+	Call resetDataValidity(&quot;M_Details_of_PAYE_Deducted&quot;,&quot;PayeDed.ListS&quot;,&quot;A&quot;,&quot;PINofEmployerS&quot;)
+
+	call resetSpecificRangeWithList(&quot;F_Employment_Income&quot;,&quot;PINofEmployerW&quot;,&quot;EmpIncome.ListW&quot;)
+	Call resetDataValidity(&quot;I_Computation_of_Car_Benefit&quot;,&quot;CarBenefit.ListW&quot;,&quot;A&quot;,&quot;PINofEmployerW&quot;)
+
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;PINofEmployerCarS&quot;,&quot;CarBenefit.ListS&quot;)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;valueOfCarS&quot;,&quot;CarBenefit.ListS&quot;)
+
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;PINofEmployerCarW&quot;,&quot;CarBenefit.ListW&quot;)
+	call resetSpecificRangeWithList(&quot;I_Computation_of_Car_Benefit&quot;,&quot;valueOfCarW&quot;,&quot;CarBenefit.ListW&quot;)
+  notCallListener=false		
+		
+end sub
+
+sub resetAgeOfChild(rangeName as String)
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=oRange.getReferredCells().getRangeAddress().sheet
+		sheet=ThisComponent.sheets.getByName(&quot;L_Computation_of_Insu_Relief&quot;)
+		Unprotectsheet(&quot;L_Computation_of_Insu_Relief&quot;)
+		Dim policyHolder as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		Dim tempStr as String
+		for i = startRowNum to endRowNum
+	&apos;***
+		policyHolder=sheet.getCellrangeByName(&quot;E&quot;&amp;(i+1)&amp;&quot;:E&quot;&amp;(i+1)).string
+		If (policyHolder=&quot;Child&quot;) Then
+			tempStr=sheet.getCellrangeByName(&quot;F&quot;&amp;(i+1)&amp;&quot;:F&quot;&amp;(i+1)).string
+			Unprotect_Range(&quot;L_Computation_of_Insu_Relief&quot;,&quot;F&quot;&amp;(i+1)&amp;&quot;:F&quot;&amp;(i+1))
+			sheet.getCellrangeByName(&quot;F&quot;&amp;(i+1)&amp;&quot;:F&quot;&amp;(i+1)).value = Cdbl(tempStr)
+		else    
+			Protect_Range(&quot;L_Computation_of_Insu_Relief&quot;,&quot;F&quot;&amp;(i+1)&amp;&quot;:F&quot;&amp;(i+1)) 
+		End If
+
+		Next
+		protectsheet(&quot;L_Computation_of_Insu_Relief&quot;)
+
+end Sub
+
+sub resetDataOnToggleOwnHire(rangeName as String)
+
+	Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=oRange.getReferredCells().getRangeAddress().sheet
+		sheet=ThisComponent.sheets.getByName(&quot;I_Computation_of_Car_Benefit&quot;)
+		Unprotectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+		Dim usage as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		Dim tempStr as String
+		for i = startRowNum to endRowNum
+				row=i
+&apos;***************
+			usage=sheet.getCellrangeByName(&quot;F&quot;&amp;(i+1)&amp;&quot;:F&quot;&amp;(i+1)).string
+
+				If (usage=&quot;Owned&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;OWNED&quot;
+					tempStr=sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).value=Cdbl(tempStr)
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+				elseIf (usage=&quot;Hired&quot;) Then
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;HIRED&quot;
+					tempStr=sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).value=Cdbl(tempStr)
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+				else
+					sheet.getCellrangeByName(&quot;M&quot;&amp;(row+1)&amp;&quot;:M&quot;&amp;(row+1)).string=&quot;&quot;
+					Unprotect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1))    
+					sheet.getCellrangeByName(&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;I_Computation_of_Car_Benefit&quot;,&quot;G&quot;&amp;(row+1)&amp;&quot;:G&quot;&amp;(row+1)) 
+				End If
+	   Next
+		protectsheet(&quot;I_Computation_of_Car_Benefit&quot;)
+&apos;***************
+
+end Sub
+
+sub resetOnDateOfFirstUse(rangeName as String)
+
+		Dim endDate as String
+		Dim startDate as String
+		Dim dateFrom As String
+		Dim year as String
+		Dim month as String
+		Dim day as String
+		Dim endDt as Object
+		
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;E1_IDA_CA&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;B&quot;&amp;(startRowNum+1)&amp;&quot;:B&quot;&amp;(endRowNum+1))
+		unprotectsheet(&quot;A_Basic_Info&quot;)
+		unprotectsheet(&quot;E1_IDA_CA&quot;)
+		startDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+		endDate =   ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+		
+		Dim currentDate As String
+	&apos;***
+		for i = startRowNum to endRowNum
+				row=i
+				currRange=sheet.getCellrangeByName(&quot;B&quot;&amp;(row+1)&amp;&quot;:B&quot;&amp;(row+1))
+			currentDate= sheet.getCellrangeByName(&quot;B&quot;&amp;(row+1)&amp;&quot;:B&quot;&amp;(row+1)).string
+	         If currentDate&lt;&gt;&quot;&quot; then
+	            If (ValidateDate(currentDate) = False) Then
+		             msgStr = msgStr &amp; (row+1)
+			         currRange.string = &quot;&quot;
+			         MsgBox  msgDateFrmt
+	   		    Else
+	        	    If (startDate = &quot;&quot;) OR ValidateDate(startDate)=False Or (endDate = &quot;&quot;) Or ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+			       	     sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string=&quot;&quot;
+	            		 MsgBox msgEntrPrdDate
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+		            Else
+		            	endDt= Split(endDate,&quot;/&quot;)
+	              		year=INT(endDt(2))
+	              		month=INT(endDt(1))
+	              		day=INT(endDt(0))
+			            If lessThnEqualToReturnYr(currentDate,year,month,day)=False Then
+				        		   currRange.string = &quot;&quot;
+				        		   sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string=&quot;&quot;
+				        		   msgStr = msgStr &amp; (row+1)
+				        		   &apos;MsgBox &quot;Date of First Use in Row &quot; &amp; (row+1) &amp; &quot; should be before or within return period.&quot;
+				        Else
+			        	&apos;Calculate the number of days.
+			        	if DayDifference(currentDate,endDate) &gt; DayDifference(startDate,endDate) then
+			        		sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string=Cstr(DayDifference(startDate,endDate)+1)
+			        	else
+			        		sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string=Cstr(DayDifference(currentDate,endDate)+1)
+			        	End If
+	             		End If
+	             	End If
+	        	 End If
+	        Else
+	        	sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string=&quot;&quot;
+	        End If
+		Next
+		
+		protectsheet(&quot;E1_IDA_CA&quot;)
+		protectsheet(&quot;A_Basic_Info&quot;)
+end Sub
+
+sub resetPRNNumber(rangeName as String,sheetName as String)
+		
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(sheetName)
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		
+		Dim prnNo as String
+		Dim prnNoObject as Object
+	&apos;***
+		for i = startRowNum to endRowNum
+			row=i
+			prnNoObject=sheet.getCellrangeByName(&quot;A&quot;&amp;(row+1)&amp;&quot;:A&quot;&amp;(row+1))
+			prnNo= sheet.getCellrangeByName(&quot;A&quot;&amp;(row+1)&amp;&quot;:A&quot;&amp;(row+1)).string
+			sheet.getCellrangeByName(&quot;A&quot;&amp;(row+1)&amp;&quot;:A&quot;&amp;(row+1)).string=Cstr(Format(prnNo,0))
+		Next
+		
+end Sub
+
+sub resetOnDateOfFirstUseRate(rangeName as String)
+
+		Dim endDate as String
+		Dim startDate as String
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;E1_IDA_CA&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		unprotectsheet(&quot;E1_IDA_CA&quot;)
+		unprotectsheet(&quot;A_Basic_Info&quot;)
+		startDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+		endDate =   ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+		
+		Dim purchaseDate as String
+		Dim dateFrom As String
+		Dim year as String
+		Dim month as String
+		Dim day as String
+		Dim endDt as Object
+	&apos;***
+		for i = startRowNum to endRowNum
+				row=i
+			currRange=sheet.getCellrangeByName(&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1))
+			purchaseDate= sheet.getCellrangeByName(&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1)).string
+	         If purchaseDate&lt;&gt;&quot;&quot; then
+	            If (ValidateDate(purchaseDate) = False) Then
+		             msgStr = msgStr &amp; (row+1)
+			         currRange.string = &quot;&quot;
+			         MsgBox  msgDateFrmt
+	   		    Else
+	        	    If (startDate = &quot;&quot;) OR ValidateDate(startDate)=False Or (endDate = &quot;&quot;) Or ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+	            		 MsgBox msgEntrPrdDate
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+		            Else
+		            	endDt= Split(endDate,&quot;/&quot;)
+	              		year=INT(endDt(2))
+	              		month=INT(endDt(1))
+	              		day=INT(endDt(0))
+			            If lessThnEqualToReturnYr(purchaseDate,year,month,day)=False Then
+				        		   currRange.string = &quot;&quot;
+				        		   msgStr = msgStr &amp; (row+1)
+				        		   &apos;MsgBox &quot;Date of commencement in Row &quot; &amp; msgStr &amp;&quot; should be less than or equal to return year.&quot;
+				        ElseIf TestDateBtwnRtnPeriod(purchaseDate)=False Then
+			        		   sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).value=10
+			        		   &apos;MsgBox &quot;Date is not between return period.&quot;
+			        	Else
+			        		   sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).value=40
+			        		   &apos;MsgBox &quot;Date is between return period.&quot;
+	             		End If
+	             	End If
+	         	End If
+	         Else
+	         	sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).string=&quot;&quot;
+	         End If
+		Next
+		protectsheet(&quot;E1_IDA_CA&quot;)
+		protectsheet(&quot;A_Basic_Info&quot;)
+end Sub
+
+sub resetOnUsageToggle(rangeName as String)
+
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=oRange.getReferredCells().getRangeAddress().sheet
+
+		Unprotectsheet(&quot;P_Advance_Tax_Credits&quot;)
+		Dim usage as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		Dim tempString as String
+
+		sheet=ThisComponent.sheets.getByName(&quot;P_Advance_Tax_Credits&quot;)
+
+		for i = startRowNum to endRowNum
+				row=i
+				usage=sheet.getCellrangeByName(&quot;C&quot;&amp;(row+1)&amp;&quot;:C&quot;&amp;(row+1)).string
+&apos;************
+				If (usage=&quot;Saloons, Station-Wagons, Minibuses, Buses, Coaches&quot;) Then
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;SALOON&quot;
+					tempString=sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).string
+					Unprotect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).value=Cdbl(tempString)
+					sheet.getCellrangeByName(&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1))
+				elseIf (usage=&quot;Van, Pick-ups, Trucks, Lorries&quot;) Then
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;VAN&quot;
+					tempString=sheet.getCellrangeByName(&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1)).string
+					Unprotect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1)).value=Cdbl(tempString)
+					sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1))    
+				else
+					sheet.getCellrangeByName(&quot;H&quot;&amp;(row+1)&amp;&quot;:H&quot;&amp;(row+1)).string=&quot;&quot;
+					tempString=sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).string
+					Unprotect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;D&quot;&amp;(row+1)&amp;&quot;:D&quot;&amp;(row+1))
+					sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).value=Cdbl(tempString)
+					sheet.getCellrangeByName(&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1)).string=&quot;&quot;
+					Protect_Range(&quot;P_Advance_Tax_Credits&quot;,&quot;E&quot;&amp;(row+1)&amp;&quot;:E&quot;&amp;(row+1))    
+				End If
+&apos;************
+	   Next
+	protectsheet(&quot;P_Advance_Tax_Credits&quot;)
+end Sub 
+
+
+Dim cellBreak as Boolean
+Dim prevCellBreakCounterEndRow as Long
+Dim previousLogicalName as String
+Dim bufferRow as Long
+&apos;Method Created By Janhavi Bhokri On 12.12.2011
+&apos;This methods reads the amendment sheet where the string structure of logical names and its values are appended.
+&apos;This method parse the string and fills the list data values to the corresponding cells.
+
+Public Sub fillListDataInFields(listDataStr As String,amendmentSheet as String)
+
+
+    Dim lastColumn As Long
+    Dim lastRow As Long
+    Dim currentWorkSheet As Object
+    Dim cellRange As Object
+    Dim startRow As Long
+    Dim startColumn As Long
+    
+    &apos;Declare Seperators
+    Dim PROP_SEP As String
+    PROP_SEP = &quot;@PL@&quot;
+    Dim LIST_SEP As String
+    LIST_SEP = &quot;@L_@&quot;
+    Dim VALUE_SEP As String
+    VALUE_SEP = &quot;%VL@&quot;
+    Dim listArr As Object
+    Dim singleListDataArr As Object
+    Dim singleRowData As Object
+    Dim lstName As String
+    Dim lstRange As Object
+    Dim rngSheet As String
+    Dim startCnt As Integer
+    Dim newLastRow As Integer
+	Dim iCnt as Integer
+	Dim rowListindex as Integer
+	
+	notCallListener=true
+	
+    listArr = Split(listDataStr, LIST_SEP)
+        For iCnt = 0 To UBound(listArr) &apos;Loop of all lists starts here
+               If listArr(iCnt) &lt;&gt; &quot;&quot; Then &apos;This is always the list&apos;s Data
+               
+                 singleListDataArr = Split(listArr(iCnt), PROP_SEP) &apos;Gets Array of row Data of single List
+                 lstName = singleListDataArr(0)
+                 
+                 If previousLogicalName=lstName then
+	                 cellBreak=true
+	                 bufferRow = prevCellBreakCounterEndRow
+	                 prevCellBreakCounterEndRow=prevCellBreakCounterEndRow+UBound(singleListDataArr)
+                 Else
+                     cellBreak=false
+                     prevCellBreakCounterEndRow=UBound(singleListDataArr)
+                 End if
+                 
+                 previousLogicalName = lstName
+                 
+                            &apos;Code to activate Sheet where given range is referenced
+                            
+                         
+               if thiscomponent.namedranges.hasByName(Trim(lstName)) then 
+               
+               if MID(Trim(lstName),1,4) =&quot;PLA.&quot; and (RIGHT(Trim(lstName),5) =&quot;DataS&quot; Or RIGHT(Trim(lstName),5) =&quot;DataW&quot;)then
+               		On Error GoTo CellSizeErrorHandle
+               		Call fillListRowWise(singleListDataArr(1),Trim(lstName))
+               		ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))
+               elseif MID(Trim(lstName),1,8) =&quot;TaxComp.&quot; and (RIGHT(Trim(lstName),5) =&quot;ListS&quot; Or RIGHT(Trim(lstName),5) =&quot;ListW&quot;) and (lstName&lt;&gt;&quot;TaxComp.OthExp&quot; and  lstName&lt;&gt;&quot;TaxComp.OthDed&quot;) and (lstName&lt;&gt;&quot;TaxComp.OthExpListS&quot; and  lstName&lt;&gt;&quot;TaxComp.OthDedListS&quot;) and (lstName&lt;&gt;&quot;TaxComp.OthExpListW&quot; and  lstName&lt;&gt;&quot;TaxComp.OthDedListW&quot;) then
+               		On Error GoTo CellSizeErrorHandle
+               		Call fillListRowWise(singleListDataArr(1),Trim(lstName))
+               		ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))		
+               elseif lstName=&quot;DtlLossFrwd.BussinessS&quot; or lstName=&quot;DtlLossFrwd.FarmingS&quot; or lstName=&quot;DtlLossFrwd.RentalS&quot; or lstName=&quot;DtlLossFrwd.InterestS&quot; or lstName=&quot;DtlLossFrwd.CommissionS&quot; or lstName=&quot;DtlLossFrwd.OtherS&quot; or lstName=&quot;DtlLossFrwd.TotalS&quot; then
+               		On Error GoTo CellSizeErrorHandle
+               		Call fillListRowWise(singleListDataArr(1),Trim(lstName))
+               		ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))		
+               elseif lstName=&quot;DtlLossFrwd.BussinessW&quot; or lstName=&quot;DtlLossFrwd.FarmingW&quot; or lstName=&quot;DtlLossFrwd.RentalW&quot; or lstName=&quot;DtlLossFrwd.InterestW&quot; or lstName=&quot;DtlLossFrwd.CommissionW&quot; or lstName=&quot;DtlLossFrwd.OtherW&quot; or lstName=&quot;DtlLossFrwd.TotalW&quot; then
+               		On Error GoTo CellSizeErrorHandle
+               		Call fillListRowWise(singleListDataArr(1),Trim(lstName))
+               		ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))		
+               elseif lstName=&quot;WAT.ListS&quot; or lstName=&quot;WAT.ListW&quot; then
+               		On Error GoTo CellSizeErrorHandle
+               		Call fillWATList(singleListDataArr,Trim(lstName))
+               		ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))	
+               Else 
+               	&apos;General flow of list
+                oRange = ThisComponent.NamedRanges.getByName(lstName)
+		        startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		        If (cellBreak &lt;&gt; True) Then
+                     startCnt = 0
+                 Else
+                     startCnt = bufferRow
+                 End If
+		        endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		        startColumnNum = oRange.getReferredCells().getRangeAddress().StartColumn
+		        endcolumnNum = oRange.getReferredCells().getRangeAddress().EndColumn
+                startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+                
+                &apos;Code to Activate the Sheet for updation            
+                currentWorkSheet=thisComponent.Sheets.getByIndex(oRange.getReferredCells().getRangeAddress().sheet)
+			    ThisComponent.CurrentController.setActiveSheet(currentWorkSheet)
+			   
+                 
+                 newLastRow = startRowNum + prevCellBreakCounterEndRow - 1
+                 If (newLastRow - endRowNum) &gt; 0 Then
+                     notCallListener=True
+                     Call InsertGivenRowsAndFillFormulas(lstName, (newLastRow - endRowNum))
+                     notCallListener=false
+                 End If
+                If (UBound(singleListDataArr) &gt;= 1) Then
+                	rowListindex=1
+                    For j = startCnt To startCnt + UBound(singleListDataArr) - 1 &apos;Loop of single list&apos;s multiple rows starts here
+                      
+                       If singleListDataArr(rowListindex) &lt;&gt; &quot;&quot; Then
+                             singleRowData = Split(singleListDataArr(rowListindex), VALUE_SEP) &apos;gets all column data of single row
+                            
+                             For cnt = 0 To UBound(singleRowData) &apos;Loop of columns data filling for single row starts here
+                              
+                              if singleRowData(cnt)&lt;&gt;&quot;&quot; then  
+                              
+                             
+                                oCells=oRange.getReferredCells().getCellByPosition(cnt,j)
+			    				ThisComponent.CurrentController.Select(oCells) 
+			    				CellProtStruc = oCells.CellProtection
+                                &apos; If the cell has formula  or its locked or has formula then data should not be filled
+                                 If CellProtStruc.isLocked=true  And InStr(1, oCells.FormulaLocal, &quot;=&quot;) = 1 Then
+                                   &apos;do nothing
+                                  
+                                   &apos;************************************************
+                                   &apos;Code added by janhavi to check whether given formula is of type lookup code if
+                                   &apos; it is then reverse mapping is done and the lookupName is fetched from LookupCode
+                                   &apos; using the formula given
+		                                Dim formulaStr as String
+	                                  	Dim oSetRange as Object
+	                              		Dim data as Object
+	                                  	Dim lookupName As String
+	                                  	formulaStr= oCells.FormulaLocal
+	    
+		                                   &apos;Case 1 if formulaStr is: Lookup()
+		                                   if(Instr(1,formulaStr,&quot;=IF(ISERROR(LOOKUP(&quot;)=1) then
+		                                  	
+		                                  	data = getLookupData(formulaStr)
+		                                  	oSetRange=currentWorkSheet.getCellrangeByName(data(0) &amp; &quot;:&quot; &amp; data(0))
+		                                  	lookupName =getValueFromLookupCode(singleRowData(cnt),data(1),data(2))
+		                                  	 ThisComponent.CurrentController.Select(oSetRange)
+		                                  	   if TestNumber(lookupName) OR validateCurrencyFormat(lookupName) then
+					                          	   currentWorkSheet.unprotect(Pwd)
+					                          	    oSetRange.value = CDbl(lookupName)                          	
+					                          	Else
+						                          	currentWorkSheet.unprotect(Pwd)
+													oSetRange.string = lookupName
+					                            End If
+		                                   End If
+                                   
+                                   &apos;*************************************************
+                                   
+                                 Else
+                                    if (lstName=&quot;DtlIncomePaid.IncomePaidAdvanceListS&quot; or lstName=&quot;DtlIncomePaid.IncomePaidSelfAssmntListS&quot; or lstName=&quot;DtlIncomePaid.IncomePaidAdvanceListW&quot; or lstName=&quot;DtlIncomePaid.IncomePaidSelfAssmntListW&quot; or lstName=&quot;InstallmentTax.ListS&quot; or lstName=&quot;InstallmentTax.ListW&quot;) and cnt=0 then
+                                 		currentWorkSheet.unprotect(Pwd)
+										oCells.string = singleRowData(cnt)
+                                    Elseif TestNumber(singleRowData(cnt)) OR validateCurrencyFormat(singleRowData(cnt)) or validateExpoFormat(singleRowData(cnt)) then
+		                          	    currentWorkSheet.unprotect(Pwd)
+		                          	    oCells.value= CDbl(singleRowData(cnt))                          	
+		                          	Else
+			                          	currentWorkSheet.unprotect(Pwd)
+										oCells.string = singleRowData(cnt)
+		                            End If
+                                    &apos;oCells.string = singleRowData(cnt)
+                                 End If
+                               
+                               End if 
+                               
+                             Next cnt &apos;single row&apos;s column filling ends here
+                       End If
+                       startCnt = startCnt + 1
+                       rowListindex = rowListindex + 1
+                    Next j &apos;all rows filling of single list ends here
+                  End If
+                End If		&apos;condition for row wise filling ends here
+                End If
+               End If
+            
+              ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(amendmentSheet))
+			   CellSizeErrorHandleResolved:
+               On Error GoTo 0 &apos; inactivate my error handler 
+
+        Next &apos;iCnt &apos;All Lists data filling ends here
+   notCallListener=false
+Exit Sub
+
+CellSizeErrorHandle:
+    Resume CellSizeErrorHandleResolved
+   
+End Sub
+
+public sub fillListRowWise(listData as String, lstName as String)
+
+ 	Dim lastColumn As Long
+    Dim lastRow As Long
+    Dim currentWorkSheet As Object
+    Dim cellRange As Object
+    Dim startRow As Long
+    Dim startColumn As Long
+    
+    &apos;Declare Seperators
+    Dim PROP_SEP As String
+    PROP_SEP = &quot;@PL@&quot;
+    Dim LIST_SEP As String
+    LIST_SEP = &quot;@L_@&quot;
+    Dim VALUE_SEP As String
+    VALUE_SEP = &quot;%VL@&quot;
+    Dim listArr As Object
+    Dim singleListDataArr As Object
+    Dim singleRowData As Object
+    Dim lstRange As Object
+    Dim rngSheet As String
+    Dim startCnt As Integer
+    Dim newLastRow As Integer
+	Dim cnt As Integer
+    dim shtName as String
+    
+
+    			
+	   		
+				oRange= ThisComponent.NamedRanges.getByName(lstName)
+			    
+                currentWorkSheet=thisComponent.Sheets.getByIndex(oRange.getReferredCells().getRangeAddress().sheet)
+			    ThisComponent.CurrentController.setActiveSheet(currentWorkSheet)
+			   
+                startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		        endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		        startColumnNum = oRange.getReferredCells().getRangeAddress().StartColumn
+		        endcolumnNum = oRange.getReferredCells().getRangeAddress().EndColumn
+                
+                	startCnt = 0
+                       If listData &lt;&gt; &quot;&quot; Then
+                             singleRowData = Split(listData, VALUE_SEP) &apos;gets all column data of single row
+                            rowCnt=0
+                            dataCnt=0
+                            
+                             For cnt = startRowNum To endRowNum &apos;Loop of columns data filling for single row starts here
+                              label:
+                              
+                              oCells=currentWorkSheet.getCellByPosition(0,cnt)
+							  oCells2=oRange.getReferredCells().getCellByPosition(0,rowCnt)
+								if oCells.isMerged() then
+									cnt=cnt+1
+									rowCnt=rowCnt+1
+									goto label		
+								End If
+                              if singleRowData(dataCnt)&lt;&gt;&quot;&quot; then  &apos;Code for getting value
+                              
+                               	ThisComponent.CurrentController.Select(oCells2) 
+			    				CellProtStruc = oCells2.CellProtection
+                                &apos; If the cell has formula  or its locked or has formula then data should not be filled
+	                                 If CellProtStruc.isLocked=true  And InStr(1, oCells2.FormulaLocal, &quot;=&quot;) = 1 Then
+	                                   &apos;do nothing
+	                                   
+	                                 Else
+	                                    if TestNumber(singleRowData(dataCnt)) OR validateCurrencyFormat(singleRowData(dataCnt)) or validateExpoFormat(singleRowData(dataCnt))  then
+			                          	    currentWorkSheet.unprotect(Pwd)
+			                          	    oCells2.value= CDbl(singleRowData(dataCnt))                          	
+			                          	Else
+				                          	currentWorkSheet.unprotect(Pwd)
+											oCells2.string = singleRowData(dataCnt)
+			                            End If
+	                                    &apos;oCells.string = singleRowData(cnt)
+	                                 End If
+                               
+                               End if 
+                               rowCnt=rowCnt+1
+                               dataCnt=dataCnt+1
+                             Next  &apos;single row&apos;s column filling ends here
+                       End If
+	
+End Sub
+Public Sub InsertGivenRowsAndFillFormulas(rangeName As String,vrows as Long)
+    
+    On Error GoTo Errorcatch
+  
+    &apos; ActiveCell.EntireRow.Select  &apos;So you do not have to preselect entire row
+    &apos;ThisComponent.CurrentController.ActiveSheet.getCellRangeByName(&quot;B26&quot;).value
+	Dim ActiveSheet as Object
+    ActiveSheet = ThisComponent.CurrentController.ActiveSheet
+   
+    &apos; @Author   Kandarp Doshi (194714) and Kalpesh Chaniyara
+    &apos; This Function/Sub routine workes by row selection based on Range Name
+    
+    Dim startRow As Long, endRow As Long
+    &apos;get the start row number from the range name
+    &apos;Dim oRange as Object
+    oRange = ThisComponent.NamedRanges.getByName(rangeName)
+    Dim rangeAddress As Object
+    rangeAddress = oRange.getReferredCells().getRangeAddress()
+    startRow = rangeAddress.StartRow + 1
+    endRow = rangeAddress.EndRow + 1
+	&apos; Insert the rows after the end of the range
+	ActiveSheet.Unprotect (Pwd)
+    ActiveSheet.getRows.insertByIndex(endRow,vRows)
+    Dim oRowSourceAdd As Object
+    Dim oRowSource As Object
+	Dim aAddressTarget As New com.sun.star.table.CellAddress
+
+   oRowSource = ActiveSheet.getRows().getByIndex(rangeAddress.EndRow)
+   
+   for i=1 to vRows
+   	aAddressTarget = ActiveSheet.getCellByPosition(0, rangeAddress.EndRow+i).getCellAddress()
+   	ActiveSheet.copyRange(aAddressTarget, oRowSource.getRangeAddress())
+   	oRowSourceAdd=ActiveSheet.getRows().getByIndex(rangeAddress.EndRow+i)
+   	oRowSourceAdd.clearContents( _
+		com.sun.star.sheet.CellFlags.VALUE _
+		+com.sun.star.sheet.CellFlags.STRING _
+		+com.sun.star.sheet.CellFlags.DATETIME)
+   Next
+
+    
+  	
+   	Dim newRangeAddr as String
+   
+   &apos; newRangeAddr = &quot;$&apos;&quot; + ActiveSheet.Name + &quot;&apos;.$&quot; + ColumnNumberToString(rangeAddress.StartColumn) + &quot;$&quot; +startRow + &quot;:$&quot; +_
+   	&apos;	+ ColumnNumberToString(rangeAddress.EndColumn) + &quot;$&quot;+(endRow+vRows) 
+   	 Dim colStart as String
+   Dim colEnd as String
+   colStart=ColumnNumberToString(rangeAddress.StartColumn)
+   colEnd= ColumnNumberToString(rangeAddress.EndColumn)
+    newRangeAddr = &quot;$&apos;&quot; &amp; ActiveSheet.Name &amp; &quot;&apos;.$&quot; &amp; colStart &amp; &quot;$&quot; &amp; startRow &amp; &quot;:$&quot; &amp; colEnd &amp; &quot;$&quot; &amp; (endRow+vRows) 
+   	
+   		 
+   
+   &apos;	newRangeAddr = &quot;&apos;&quot; + ActiveSheet.Name + &quot;&apos;.&quot; + ColumnNumberToString(rangeAddress.StartColumn) + startRow + &quot;:&quot; +_
+   &apos;		+ ColumnNumberToString(rangeAddress.EndColumn) + (endRow+vRows) 
+	oRange.getReferredCells().getRangeAddress().EndRow = endRow + vRows
+   	Dim oCellAddress As new com.sun.star.table.CellAddress
+    oCellAddress.Sheet = rangeAddress.Sheet     &apos;The first sheet.
+    oCellAddress.Column = rangeAddress.StartColumn    &apos;Column B.
+    oCellAddress.Row = rangeAddress.StartRow       &apos;Row 3.
+   	ThisComponent.NamedRanges.removeByName(rangeName)
+   	ThisComponent.NamedRanges.addNewByName(rangeName,newRangeAddr, oCellAddress, 0)
+     
+    On Error Resume Next
+        Selection.Offset(1).Resize(vRows).EntireRow. _
+           SpecialCells(xlConstants).ClearContents
+	ActiveSheet.Protect (Pwd)     
+    Exit Sub
+	Errorcatch:
+	MsgBox Err.Description
+	ActiveSheet.Protect (Pwd)     
+End Sub
+
+&apos;function to get the Field Address, Range name of Lookup Name and Lookup Code in Data Sheet in form of array
+&apos;Created By Janhavi Bhokri on 01/03/2012
+public function getLookupData (formulaStr as String) As Object
+
+Dim str as string
+Dim data as Object
+Dim endPos as integer 
+&apos;for testing
+&apos;formulaStr = &quot;=IF(ISERROR(LOOKUP(A4;SortedTypesOfSales;TypesOfSalesCode));&quot;&quot;;LOOKUP(A4;SortedTypesOfSales;TypesOfSalesCode))&quot;
+
+  	&apos;it has lookupcode formula and need to set the reverse field using given value
+
+	data=split(formulaStr,&quot;)&quot;)
+	formulaStr= data(0)
+	endPos= Len(formulaStr)
+   	str=MID(formulaStr,len(&quot;=IF(ISERROR(LOOKUP(&quot;)+1,endPos-len(&quot;=IF(ISERROR(LOOKUP(&quot;)+1)
+	data=Split(str,&quot;;&quot;)
+
+	getLookupData = data
+end function
+
+
+&apos;Function to get the Value of LookupName from lookup code
+&apos;Created By Janhavi Bhokri on 01/03/2012
+public function getValueFromLookupCode(lookupCode as String,lookupNameTable as String,lookupCodeTable as String) as String
+
+Dim oLookupNameTable as Object
+Dim oLookupCodeTable as Object
+Dim setCol as Integer
+Dim setRow as Integer
+Dim lookupName as String
+Dim startRowNum as Long
+Dim endRowNum as Long
+Dim startColumn as Long
+Dim oLookupRange as Object
+Dim Sheet, Descript, Cell1 as object
+
+	oLookupNameTable=ThisComponent.NamedRanges.getByName(lookupNameTable)
+	oLookupCodeTable=ThisComponent.NamedRanges.getByName(lookupCodeTable)
+	setCol=	oLookupNameTable.getReferredCells().getRangeAddress().StartColumn
+	
+	
+	startRowNum = oLookupCodeTable.getReferredCells().getRangeAddress().StartRow
+    endRowNum = oLookupCodeTable.getReferredCells().getRangeAddress().EndRow
+    startColumn=oLookupCodeTable.getReferredCells().getRangeAddress().StartColumn
+    
+	
+	Sheet = ThisComponent.sheets.getByName(&quot;Data&quot;)
+	UnProtectSheet(&quot;Data&quot;)
+	
+	oLookupRange=Sheet.getCellRangeByPosition(startColumn,startRowNum,startColumn,endRowNum)
+
+	Descript = oLookupRange.createSearchDescriptor()
+	Descript.SearchString =  lookupCode
+	Descript.SearchWords = True &apos;If true, the search will match only complete words
+
+	Cell1 = oLookupRange.findFirst(Descript)
+	If Not IsNull(Cell1) then
+		setRow = Cell1.CellAddress.Row
+		lookupName=sheet.getCellByPosition(setCol,setRow).String
+	End If
+	
+	getValueFromLookupCode=lookupName	
+	
+end function
+
+
+
+&apos;Function to go to given Sheet blank Cell
+Function gotoGivenSheet(currentWorkSheet as Object) 	
+    	for i = 0 to 10
+    		for j=0 to 5
+    			if currentWorkSheet.getCellByPosition(j,i).CellProtection.isLocked = False then
+    				ThisComponent.CurrentController.Select(currentWorkSheet.getCellByPosition(j,i))	
+    				Exit function
+    			end if
+    		next j
+    	next i
+End Function
+
+Global oProgressBarModel As Object
+Global labelModel As Object
+Global globalProgressCounter as Integer
+
+Sub MacroRunning()
+	REM Dialog1 contains progress bar ProgressBar1 saved in standard library
+	DialogLibraries.loadLibrary(&quot;Standard&quot;)
+	oDialog = CreateUnoDialog(DialogLibraries.Standard.MacroRunning)
+	REM progress bar settings
+	Const ProgressValueMin = 0
+	Const ProgressValueMax = 500
+	REM set minimum and maximum progress value
+	oProgressBarModel = oDialog.getModel().getByName( &quot;ProgressBar1&quot; )
+	labelModel = oDialog.getModel().getByName( &quot;Label1&quot; )
+	oProgressBarModel.setPropertyValue( &quot;ProgressValueMin&quot;, ProgressValueMin)
+	oProgressBarModel.setPropertyValue( &quot;ProgressValueMax&quot;, ProgressValueMax)
+	REM show progress bar
+	oDialog.setVisible( True )
+	REM increase progress value every second
+End Sub
+
+public sub fillWATList(multipleListData as Object, lstName as String)
+
+ 	Dim lastColumn As Long
+    Dim lastRow As Long
+    Dim currentWorkSheet As Object
+    Dim cellRange As Object
+    Dim startRow As Long
+    Dim startColumn As Long
+    Dim listdata as String
+    
+    &apos;Declare Seperators
+    Dim PROP_SEP As String
+    PROP_SEP = &quot;@PL@&quot;
+    Dim LIST_SEP As String
+    LIST_SEP = &quot;@L_@&quot;
+    Dim VALUE_SEP As String
+    VALUE_SEP = &quot;%VL@&quot;
+    Dim listArr As Object
+    Dim singleListDataArr As Object
+    Dim singleRowData As Object
+    Dim lstRange As Object
+    Dim rngSheet As String
+    Dim startCnt As Integer
+    Dim newLastRow As Integer
+	Dim cnt As Integer
+    dim shtName as String
+    Dim curCell as Object
+	Dim K as Integer
+    			
+	oRange= ThisComponent.NamedRanges.getByName(lstName)
+			    
+                currentWorkSheet=thisComponent.Sheets.getByIndex(oRange.getReferredCells().getRangeAddress().sheet)
+			    ThisComponent.CurrentController.setActiveSheet(currentWorkSheet)
+			   
+                startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		        endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		        startColumnNum = oRange.getReferredCells().getRangeAddress().StartColumn
+		        endcolumnNum = oRange.getReferredCells().getRangeAddress().EndColumn
+		        
+          For counterList = 1 To UBound(multipleListData)
+		          listData=multipleListData(counterList)
+                	startCnt = 0
+                       If listData &lt;&gt; &quot;&quot; Then
+                             singleRowData = Split(listData, VALUE_SEP) &apos;gets all column data of single row
+                            lookUpcode = singleRowData(UBound(singleRowData)-1)
+								 Dim lookUpCodeLast As String
+								 Dim flagTochklookup as Boolean
+								 
+								      If (InStr(1, lookUpcode, &quot;rateH&quot;) = 1 Or InStr(1, lookUpcode, &quot;rateW&quot;) = 1 Or InStr(1, lookUpcode, &quot;balBDW&quot;) = 1 Or InStr(1, lookUpcode, &quot;balBDH&quot;) = 1 Or InStr(1, lookUpcode, &quot;curAstVH&quot;) = 1 Or InStr(1, lookUpcode, &quot;curAstVW&quot;) = 1 Or InStr(1, lookUpcode, &quot;salesH&quot;) = 1 Or InStr(1, lookUpcode, &quot;salesW&quot;) = 1 Or InStr(1, lookUpcode, &quot;balWATH&quot;) = 1 Or InStr(1, lookUpcode, &quot;balWATW&quot;) = 1 Or InStr(1, lookUpcode, &quot;WATH&quot;) = 1 Or InStr(1, lookUpcode, &quot;WATW&quot;) = 1 Or InStr(1, lookUpcode, &quot;balCDH&quot;) = 1 Or InStr(1, lookUpcode, &quot;balCDW&quot;) = 1) Then
+								
+								               If (lookUpcode = &quot;rateH&quot;) Then
+								                   startCnt = startRowNum
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;rateW&quot;) Then
+								                   startCnt = startRowNum
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balBDH&quot;) Then
+								                   startCnt = startRowNum + 1
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balBDW&quot;) Then
+								                   startCnt = startRowNum + 1
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;curAstVH&quot;) Then
+								                   startCnt = startRowNum + 2
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;curAstVW&quot;) Then
+								                   startCnt = startRowNum + 2
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;salesH&quot;) Then
+								                   startCnt = startRowNum + 3
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;salesW&quot;) Then
+								                   startCnt = startRowNum + 3
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balWATH&quot;) Then
+								                   startCnt = startRowNum + 4
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balWATW&quot;) Then
+								                   startCnt = startRowNum + 4
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;WATH&quot;) Then
+								                   startCnt = startRowNum + 5
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;WATW&quot;) Then
+								                   startCnt = startRowNum + 5
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balCDH&quot;) Then
+								                   startCnt = startRowNum + 6
+								                   flagTochklookup = True
+								               ElseIf (lookUpcode = &quot;balCDW&quot;) Then
+								                   startCnt = startRowNum + 6
+								                   flagTochklookup = True
+								               Else
+								                  flagTochklookup = False
+								               End If
+												
+								           If flagTochklookup = True Then
+								              For K = 0 To UBound(singleRowData) &apos;Loop of columns data filling for single row starts here
+								              		&apos;curCell = ThisComponent.sheets.getByName(currentWorkSheet).getCellByPosition(startCnt, startColumnNum + K)
+								              		curCell = currentWorkSheet.getCellByPosition(startColumnNum + K, startCnt)
+													CellProtStruc = curCell.CellProtection
+								                   If(CellProtStruc.isLocked = False And InStr(curCell.FormulaLocal, &quot;=&quot;)=0) Then
+								                   	currentWorkSheet.getCellByPosition(startColumnNum + K, startCnt).value = singleRowData(K)
+								                   End If
+								              Next K &apos;single row&apos;s column filling ends here
+								          End If
+										End If
+								       End If 
+	Next
+End Sub
+
+sub resetWifeChoice()
+	
+		Unprotectsheet(&quot;A_Basic_Info&quot;)
+		
+		Dim sheet as Object
+		Dim msgStr As String
+		Dim WifeIncomeChoice as String
+	
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		WifeIncomeChoice= sheet.getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+		
+		If (WifeIncomeChoice=&quot;Yes&quot;) Then
+			&apos;lockCell = False
+			&apos;oSheet = ThisComponent.sheets.getByName(&quot;B_Profit_Loss_Account_Wife&quot;)
+			&apos;oSheet.isVisible = True
+			&apos;oSheet = ThisComponent.sheets.getByName(&quot;T_Income_Computation_Wife&quot;)
+			&apos;oSheet.isVisible = True
+		elseIf (WifeIncomeChoice=&quot;No&quot;) Then
+			lockCell = True
+			oSheet = ThisComponent.sheets.getByName(&quot;B_Profit_Loss_Account_Wife&quot;)
+			oSheet.isVisible = False
+			oSheet = ThisComponent.sheets.getByName(&quot;T_Income_Computation_Wife&quot;)
+			oSheet.isVisible = False
+			call toggleSpouseFields(lockCell)
+			Call RemoveAllListener()
+		End If
+		
+	&apos;***	
+	  	protectsheet(&quot;A_Basic_Info&quot;)
+
+end Sub
+
+sub resetExemptionCertiRange(rangeName as String,sheetName as String)
+		
+		Dim newRangeAddr as String
+   		ActiveSheet = ThisComponent.CurrentController.ActiveSheet
+   		oRange = ThisComponent.NamedRanges.getByName(rangeName)
+    	Dim rangeAddress As Object
+    	rangeAddress = oRange.getReferredCells().getRangeAddress()
+    	startRow = rangeAddress.StartRow + 1
+    	endRow = rangeAddress.EndRow + 1
+   		newRangeAddr = &quot;$&apos;&quot; + ActiveSheet.Name + &quot;&apos;.$&quot; + ColumnNumberToString(rangeAddress.StartColumn) + &quot;$&quot; +startRow + &quot;:$&quot; +_
+   			+ ColumnNumberToString(rangeAddress.EndColumn) + &quot;$&quot;+(endRow+enteredRow) 
+   
+		&apos;oRange.getReferredCells().getRangeAddress().EndRow = endRow + vRows
+   		Dim oCellAddress As new com.sun.star.table.CellAddress
+   		oCellAddress.Sheet = rangeAddress.Sheet     
+   	 	oCellAddress.Column = rangeAddress.StartColumn   
+    	oCellAddress.Row = rangeAddress.StartRow       
+		ThisComponent.NamedRanges.removeByName(rangeName)
+   		ThisComponent.NamedRanges.addNewByName(rangeName,newRangeAddr, oCellAddress, 0)
+		
+end Sub
+
+Sub BankReset()
+	Dim sheet as Object
+	Dim msgStr As String
+	Dim finTaxRefDue as Double
+	Dim tempStr as String
+		
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	finTaxRefDue= sheet.getCellrangeByName(&quot;FinalTax.TaxRefundDueS&quot;).value
+	oCells = ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellRangeByName(&quot;BankS&quot;)
+	CellProtStruc = oCells.CellProtection
+	
+   If finTaxRefDue&lt;0 and CellProtStruc.isLocked = True then
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	
+	If CellProtStruc.isLocked = True then
+		Unprotect_RangeWithoutBlank(&quot;A_Basic_Info&quot;,&quot;BankS&quot;)    
+		Unprotect_RangeWithoutBlank(&quot;A_Basic_Info&quot;,&quot;BranchS&quot;)
+		Unprotect_RangeWithoutBlank(&quot;A_Basic_Info&quot;,&quot;BankDtl.CityS&quot;)
+		Unprotect_RangeWithoutBlank(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNameS&quot;)
+		Unprotect_RangeWithoutBlank(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNumberS&quot;)
+	End If
+	
+	protectsheet(&quot;A_Basic_Info&quot;) 
+	End If
+	If finTaxRefDue&gt;0 and CellProtStruc.isLocked = True then
+	&apos;Disable listing fields
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+	sheet.getCellrangeByName(&quot;BankS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankS&quot;)    
+	sheet.getCellrangeByName(&quot;BranchS&quot;).string=&quot;&quot;	
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BranchS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.CityS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.CityS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.AccNameS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNameS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.AccNumberS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNumberS&quot;)    
+	protectsheet(&quot;A_Basic_Info&quot;) 
+   End If
+End Sub
+
+sub Unprotect_RangeWithoutBlank(SheetName as String,Range as String)
+	Dim oCells,CellProtStruc As Object
+	oCells = ThisComponent.Sheets.getByName(SheetName).getCellRangeByName(Range)
+	CellProtStruc = oCells.CellProtection
+	CellProtStruc.isLocked = False
+	oCells.CellProtection = CellProtStruc
+	Dim Cell as object
+	for i=oCells.RangeAddress.StartColumn to oCells.RangeAddress.EndColumn
+		for j= oCells.RangeAddress.StartRow to oCells.RangeAddress.EndRow
+			Cell = ThisComponent.Sheets.getByName(SheetName).getCellByPosition(i,j)
+			&apos;Cell.String = &quot;&quot;
+			&apos;Cell.Cellstyle = &quot;Normal Cell&quot;
+			Cell.CellBackColor=16777215	
+		next j
+	next i
+end sub
+
+Public Function validateEmpPinsFrmSectionISelf(ByVal value As String) As Boolean
+
+Dim pinOfEmp as String
+Dim sheet as Object
+Dim rangeName as String
+Dim testPINNo as String
+Dim rngName as String
+Dim startRowNum as Long
+Dim endRowNum as Long
+validateEmpPinsFrmSectionISelf=False
+
+&apos;if sheetName=&quot;F_Employment_Income&quot; then
+&apos;	rangeName=&quot;EmpIncome.ListS&quot;
+&apos;elseif sheetName=&quot;F_Employment_Income&quot; then
+&apos;	rangeName=&quot;EmpIncome.ListW&quot;
+&apos;end if
+
+	sheetName=&quot;F_Employment_Income&quot;
+	rangeName=&quot;EmpIncome.ListS&quot;
+
+			pinOfEmp=value
+If sheetName&lt;&gt;&quot;&quot; or rangeName&lt;&gt;&quot;&quot; then
+			sheet=ThisComponent.sheets.getByName(sheetName)
+			
+			oRange = ThisComponent.NamedRanges.getByName(rangeName)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+			rngName=&quot;A&quot; &amp; (startRowNum+1) &amp; &quot;:A&quot; &amp; (endRowNum+1)    
+			oColRange = sheet.getCellrangeByName(rngName)
+	
+		    for i=startRowNum to endRowNum
+		    	testPINNo = sheet.getCellByPosition(0,i).string
+		    	If testPINNo&lt;&gt;&quot;&quot; then
+			            If UCase(testPINNo) = Ucase(pinOfEmp) then
+							validateEmpPinsFrmSectionISelf=True
+			            	Exit for
+			         	End If
+		        End If
+			Next
+			
+			If validateEmpPinsFrmSectionISelf&lt;&gt;True then
+				validateEmpPinsFrmSectionISelf=False
+			End If
+Else
+				validateEmpPinsFrmSectionISelf=True
+End If
+End Function
+
+Public Function validateEmpPinsFrmSectionIWife(ByVal value As String) As Boolean
+
+Dim pinOfEmp as String
+Dim sheet as Object
+Dim rangeName as String
+Dim testPINNo as String
+Dim rngName as String
+Dim startRowNum as Long
+Dim endRowNum as Long
+validateEmpPinsFrmSectionIWife=False
+
+&apos;if sheetName=&quot;F_Employment_Income&quot; then
+&apos;	rangeName=&quot;EmpIncome.ListS&quot;
+&apos;elseif sheetName=&quot;F_Employment_Income&quot; then
+&apos;	rangeName=&quot;EmpIncome.ListW&quot;
+&apos;end if
+
+	sheetName=&quot;F_Employment_Income&quot;
+	rangeName=&quot;EmpIncome.ListW&quot;
+
+			pinOfEmp=value
+If sheetName&lt;&gt;&quot;&quot; or rangeName&lt;&gt;&quot;&quot; then
+			sheet=ThisComponent.sheets.getByName(sheetName)
+			
+			oRange = ThisComponent.NamedRanges.getByName(rangeName)
+		    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+		    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+			rngName=&quot;A&quot; &amp; (startRowNum+1) &amp; &quot;:A&quot; &amp; (endRowNum+1)    
+			oColRange = sheet.getCellrangeByName(rngName)
+	
+		    for i=startRowNum to endRowNum
+		    	testPINNo = sheet.getCellByPosition(0,i).string
+		    	If testPINNo&lt;&gt;&quot;&quot; then
+			            If UCase(testPINNo) = Ucase(pinOfEmp) then
+							validateEmpPinsFrmSectionIWife=True
+			            	Exit for
+			         	End If
+		        End If
+			Next
+			
+			If validateEmpPinsFrmSectionIWife&lt;&gt;True then
+				validateEmpPinsFrmSectionIWife=False
+			End If
+Else
+				validateEmpPinsFrmSectionIWife=True
+End If
+End Function
+
+Public Function checkGrtrThnEqlDate(ByVal dateFrom As String,ByVal dateTo as String) As Boolean
+Dim mm As Integer
+Dim yr As Integer
+Dim dd as Integer
+Dim strDate As Object
+Dim currDate as Object
+&apos;mm = Format(CDate(Trim(value)), &quot;MM&quot;)
+&apos;yr = Format(CDate(Trim(value)), &quot;yyyy&quot;)
+&apos;dd = Format(CDate(Trim(value)), &quot;dd&quot;)
+If(Len(Trim(dateFrom))=0) then
+	checkGrtrThnEqlDate=True
+	Exit function
+End If
+If(Len(Trim(dateTo))=0) then
+	checkGrtrThnEqlDate=True
+	Exit function
+End If
+if ValidateDate(dateFrom) then
+ strDate= Split(dateFrom, &quot;/&quot;)
+ dd= INT(strDate(0))
+ mm= INT(strDate(1))
+ yr= INT(strDate(2))
+
+currDate= Split(dateTo,&quot;/&quot;)
+&apos;If yr = Format(Now(), &quot;yyyy&quot;) Then
+If yr= INT(currDate(2)) then
+	Dim mon as Integer
+	Dim dayD as Integer 
+	mon= INT(currDate(1))
+	dayD = INT(currDate(0))
+    If mm &lt; mon Then
+      checkGrtrThnEqlDate = True
+    ElseIf mm=mon then
+    	If dd&lt;=dayD then
+    		checkGrtrThnEqlDate = True
+    	Else	
+	      checkGrtrThnEqlDate = False
+	    End If   
+	Else
+	 checkGrtrThnEqlDate = False
+	End If
+    
+ElseIf yr &lt; currDate(2) And mm &lt;= 12 Then
+        checkGrtrThnEqlDate = True
+	Else
+    	checkGrtrThnEqlDate = False
+End If
+End If
+End Function
+
+&apos;validation for personal relief for year
+&apos;Added by vaishali gohil
+public Function validatePRW(ByVal PersonalRelief As Double, ByVal RtnYear As Integer) As Double
+
+
+If PersonalRelief &lt; 0 Then
+    PersonalRelief = 0
+Else
+    If (RtnYear &lt;= 2016) Then
+        If PersonalRelief &gt; 13944 Then
+           unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefW&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 13944.&quot;
+        End If
+    End If
+    If (RtnYear = 2017) Then
+        If PersonalRelief &gt; 15360 Then
+            unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefW&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 15360.&quot;
+        End If
+    End If
+    If (RtnYear &gt;= 2018) Then
+        If PersonalRelief &gt; 16896 Then
+            unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefW&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 16896.&quot;
+        End If
+    End If
+End If
+validatePRW = PersonalRelief
+End Function
+
+&apos;validation for personal relief for year end
+&apos;Added by vaishali gohil end
+
+&apos;validation for personal relief for year
+&apos;Added by vaishali gohil
+public Function validatePRS(ByVal PersonalRelief As Double, ByVal RtnYear As Integer) As Double
+
+
+If PersonalRelief &lt; 0 Then
+    PersonalRelief = 0
+Else
+    If (RtnYear &lt;= 2016) Then
+        If PersonalRelief &gt; 13944 Then
+            unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefS&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 13944.&quot;
+        End If
+    End If
+    If (RtnYear = 2017) Then
+        If PersonalRelief &gt; 15360 Then
+            unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefS&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 15360.&quot;
+        End If
+    End If
+    If (RtnYear &gt;= 2018) Then
+        If PersonalRelief &gt; 16896 Then
+            unprotectsheet(&quot;T_Tax_Computation&quot;)
+            ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.PersonalReliefS&quot;).string = 0
+            protectsheet(&quot;T_Tax_Computation&quot;)
+            MsgBox &quot;Please enter positive numeric value less than or equal to 16896.&quot;
+        End If
+    End If
+End If
+validatePRS = PersonalRelief
+End Function
+
+&apos;validation for personal relief for year end
+&apos;Added by vaishali gohil end
+</script:module>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="R_R2_Tax_Computation" script:language="StarBasic">sub chkFinalTaxRefDue_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+	Dim finTaxRefDue as Double
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	finTaxRefDue= sheet.getCellrangeByName(&quot;FinalTax.TaxRefundDueS&quot;).value
+	oCells = ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellRangeByName(&quot;BankS&quot;)
+	CellProtStruc = oCells.CellProtection
+	
+   If finTaxRefDue&lt;0 and CellProtStruc.isLocked = True then
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	
+	If CellProtStruc.isLocked = True then
+		Unprotect_Range(&quot;A_Basic_Info&quot;,&quot;BankS&quot;)    
+		Unprotect_Range(&quot;A_Basic_Info&quot;,&quot;BranchS&quot;)
+		Unprotect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.CityS&quot;)
+		Unprotect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNameS&quot;)
+		Unprotect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNumberS&quot;)
+	End If
+	
+	protectsheet(&quot;A_Basic_Info&quot;) 
+	End If
+	If finTaxRefDue&gt;=0 and CellProtStruc.isLocked = False then
+	&apos;Disable listing fields
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+	sheet.getCellrangeByName(&quot;BankS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankS&quot;)    
+	sheet.getCellrangeByName(&quot;BranchS&quot;).string=&quot;&quot;	
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BranchS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.CityS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.CityS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.AccNameS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNameS&quot;)    
+	sheet.getCellrangeByName(&quot;BankDtl.AccNumberS&quot;).string=&quot;&quot;
+	Protect_Range(&quot;A_Basic_Info&quot;,&quot;BankDtl.AccNumberS&quot;)    
+	protectsheet(&quot;A_Basic_Info&quot;) 
+   End If
+	&apos;code
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+sub arjun
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+End sub
+&apos;Added by vaishali gohil
+sub PersonalReliefS_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(PersonalReliefS_Listener,PersonalReliefS)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+	Dim personalRelief as Double
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	personalRelief= sheet.getCellrangeByName(&quot;TaxComp.PersonalReliefS&quot;).value
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+		Dim dateFrom As String
+		Dim year as Integer
+			dateFrom= ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+			year = INT(getYear(dateFrom))
+	protectsheet(&quot;A_Basic_Info&quot;) 
+	call validatePRS(personalRelief,year)
+	
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;TaxComp.PersonalReliefS&quot;,&quot;PersonalReliefS_Listener_&quot;,PersonalReliefS_Listener,PersonalReliefS)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+&apos;Added by vaishali gohil end
+&apos;Added by vaishali gohil
+sub PersonalReliefW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(PersonalReliefW_Listener,PersonalReliefW)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+	Dim personalRelief as Double
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	personalRelief = sheet.getCellrangeByName(&quot;TaxComp.PersonalReliefW&quot;).value
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+		Dim dateFrom As String
+		Dim year as Integer
+			dateFrom= ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+			year = INT(getYear(dateFrom))
+	protectsheet(&quot;A_Basic_Info&quot;) 
+	call validatePRW(personalRelief,year)
+	
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;TaxComp.PersonalReliefW&quot;,&quot;PersonalReliefW_Listener_&quot;,PersonalReliefW_Listener,PersonalReliefW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+sub WithHoldingListSTO_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(WithHoldingListSTO_Listener,WithHoldingListSTO)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	If( sheet.getCellrangeByName(&quot;TaxComp.WithHoldingListSTO&quot;).value &gt; 0 ) Then
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	If(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareSelfBusIncome&quot;).string = &quot;No&quot;) Then	
+		unprotectsheet(&quot;T_Tax_Computation&quot;)
+		ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.WithHoldingListSTO&quot;).string = 0#
+		protectsheet(&quot;T_Tax_Computation&quot;)
+		MsgBox &quot;Please select &apos;Do you have any income other than employment income?&apos; as &apos;Yes&apos; as you have Withholding Credits. Once you select &apos;Yes&apos;, you will be allowed to declare Withholding Credit.&quot;
+	End If
+	protectsheet(&quot;A_Basic_Info&quot;) 
+	End If
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;TaxComp.WithHoldingListSTO&quot;,&quot;WithHoldingListSTO_Listener_&quot;,WithHoldingListSTO_Listener,WithHoldingListSTO)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+sub MRIWithHoldingListSTO_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(MRIWithHoldingListSTO_Listener,MRIWithHoldingListSTO)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	&apos;unprotectsheet(&quot;A_Basic_Info&quot;)
+	&apos;If(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareSelfBusIncome&quot;).string = &quot;Yes&quot;) Then
+	If( sheet.getCellrangeByName(&quot;TaxComp.MRI&quot;).value &gt; 0 And sheet.getCellrangeByName(&quot;TaxComp.MRI&quot;).value &lt;&gt; &quot;&quot; ) Then
+	unprotectsheet(&quot;B_Profit_Loss_Account_Self&quot;)
+	If(ThisComponent.Sheets.getByName(&quot;B_Profit_Loss_Account_Self&quot;).getCellrangeByName(&quot;RentalTotalSelf&quot;).value = &quot;&quot; Or ThisComponent.Sheets.getByName(&quot;B_Profit_Loss_Account_Self&quot;).getCellrangeByName(&quot;RentalTotalSelf&quot;).value = 0) Then	
+		unprotectsheet(&quot;T_Tax_Computation&quot;)
+		ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.MRI&quot;).string = 0#
+		If(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareSelfBusIncome&quot;).string = &quot;&quot; Or ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareSelfBusIncome&quot;).string = &quot;No&quot;) Then
+		MsgBox &quot;Please select &apos;Do you have any income other than employment income?&apos; as &apos;Yes&apos; as you have Withholding Credits. Once you select &apos;Yes&apos;, you will be allowed to declare &apos;Gross Turnover of Business or Profession&apos;  for Rental Income  in  B_Profit_Loss_Account_Self as you have Rental Income Withholding Credits. Once you declare the Rental Income , you will be allowed to declare the Rental Income Withholding Credit.&quot;
+		Else
+		MsgBox &quot;Please declare &apos;Gross Turnover of Business or Profession&apos;  for Rental Income  in  B_Profit_Loss_Account_Self as you have Rental Income Withholding Credits. Once you declare the Rental Income , you will be allowed to declare the Rental Income Withholding Credit.&quot;
+		End If
+		protectsheet(&quot;T_Tax_Computation&quot;)
+	End If
+	protectsheet(&quot;B_Profit_Loss_Account_Self&quot;) 
+	End If
+	&apos;protectsheet(&quot;A_Basic_Info&quot;)
+	&apos;End If
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;TaxComp.MRI&quot;,&quot;MRIWithHoldingListSTO_Listener_&quot;,MRIWithHoldingListSTO_Listener,MRIWithHoldingListSTO)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+sub MRIWithHoldingListWTO_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(MRIWithHoldingListWTO_Listener,MRIWithHoldingListWTO)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	
+	if  oSheet.name = &quot;Amendment&quot; then
+		&apos;call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;FinalTax.TaxRefundDueS&quot;,&quot;chkFinalTaxRefDue_Listener_&quot;,chkFinalTaxRefDue_Listener,chkFinalTaxRefDue)
+	    &apos;thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If	
+	
+	Dim sheet as Object
+	Dim msgStr As String
+
+	sheet=ThisComponent.sheets.getByName(&quot;T_Tax_Computation&quot;)
+	&apos;unprotectsheet(&quot;A_Basic_Info&quot;)
+	&apos;If(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeBusIncome&quot;).string = &quot;Yes&quot;) Then
+	If( sheet.getCellrangeByName(&quot;TaxComp.MRIWTO&quot;).value &gt; 0 And sheet.getCellrangeByName(&quot;TaxComp.MRIWTO&quot;).value &lt;&gt; &quot;&quot; ) Then
+	unprotectsheet(&quot;B_Profit_Loss_Account_Wife&quot;)
+	If(ThisComponent.Sheets.getByName(&quot;B_Profit_Loss_Account_Wife&quot;).getCellrangeByName(&quot;RentalTotalWife&quot;).value = &quot;&quot; Or ThisComponent.Sheets.getByName(&quot;B_Profit_Loss_Account_Wife&quot;).getCellrangeByName(&quot;RentalTotalWife&quot;).value = 0) Then	
+		unprotectsheet(&quot;T_Tax_Computation&quot;)
+		ThisComponent.Sheets.getByName(&quot;T_Tax_Computation&quot;).getCellrangeByName(&quot;TaxComp.MRIWTO&quot;).string = 0#
+		If(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeBusIncome&quot;).string = &quot;&quot; Or ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeBusIncome&quot;).string = &quot;No&quot;) Then
+		MsgBox &quot;Please select &apos;Does your wife have any income other than employment income? &apos; as &apos;Yes&apos; as you have Withholding Credits. Once you select &apos;Yes&apos;, you will be allowed to declare &apos;Gross Turnover of Business or Profession&apos;  for Rental Income  in  B_Profit_Loss_Account_Wife as you have Rental Income Withholding Credits. Once you declare the Rental Income , you will be allowed to declare the Rental Income Withholding Credit.&quot;
+		Else
+		MsgBox &quot;Please declare &apos;Gross Turnover of Business or Profession&apos;  for Rental Income  in  B_Profit_Loss_Account_Wife as you have Rental Income Withholding Credits. Once you declare the Rental Income , you will be allowed to declare the Rental Income Withholding Credit.&quot;
+		End If
+		protectsheet(&quot;T_Tax_Computation&quot;)
+	End If
+	protectsheet(&quot;B_Profit_Loss_Account_Wife&quot;) 
+	End If
+	&apos;protectsheet(&quot;A_Basic_Info&quot;)
+	&apos;End If
+	call addKRAListnersSingleCell(&quot;T_Tax_Computation&quot;,&quot;TaxComp.MRIWTO&quot;,&quot;MRIWithHoldingListWTO_Listener_&quot;,MRIWithHoldingListWTO_Listener,MRIWithHoldingListWTO)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+ &apos;Added by vaishali gohil end
+
+
+</script:module>

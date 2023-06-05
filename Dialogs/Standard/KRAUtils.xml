@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="KRAUtils" dlg:left="247" dlg:top="133" dlg:width="154" dlg:height="69" dlg:closeable="true" dlg:moveable="true">
+ <dlg:styles>
+  <dlg:style dlg:style-id="0" dlg:background-color="0x808080"/>
+ </dlg:styles>
+ <dlg:bulletinboard>
+  <dlg:button dlg:style-id="0" dlg:id="CommandButton1" dlg:tab-index="1" dlg:left="89" dlg:top="12" dlg:width="37" dlg:height="11" dlg:printable="false" dlg:value="Ok">
+   <script:event script:event-name="on-mousedown" script:macro-name="vnd.sun.star.script:Standard.Module2.TextUtils?language=Basic&amp;location=document" script:language="Script"/>
+  </dlg:button>
+  <dlg:button dlg:style-id="0" dlg:id="CommandButton2" dlg:tab-index="2" dlg:left="89" dlg:top="34" dlg:width="37" dlg:height="11" dlg:printable="false" dlg:value="Cancel">
+   <script:event script:event-name="on-mousedown" script:macro-name="vnd.sun.star.script:Standard.Module2.ExitTextUtilsDlg?language=Basic&amp;location=document" script:language="Script"/>
+  </dlg:button>
+  <dlg:numericfield dlg:id="AddDeleteRows" dlg:tab-index="0" dlg:left="29" dlg:top="12" dlg:width="42" dlg:height="12" dlg:help-text="Enter Number of Rows to be Added" dlg:decimal-accuracy="0" dlg:value="1" dlg:value-min="0" dlg:value-max="1000"/>
+ </dlg:bulletinboard>
+</dlg:window>

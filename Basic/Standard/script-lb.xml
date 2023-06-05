@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE library:library PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "library.dtd">
+<library:library xmlns:library="http://openoffice.org/2000/library" library:name="Standard" library:readonly="false" library:passwordprotected="false">
+ <library:element library:name="A_Basic_Info"/>
+ <library:element library:name="B_Profit_Loss_Account_Self"/>
+ <library:element library:name="E_Summary_of_Capital_Allowance"/>
+ <library:element library:name="B_Profit_Loss_Account_Wife"/>
+ <library:element library:name="C_Balance_Sheet"/>
+ <library:element library:name="D_Stock_Detail"/>
+ <library:element library:name="E1_IDA_CA"/>
+ <library:element library:name="E2_CA_WTA_WDV"/>
+ <library:element library:name="E2_CA_WTA_SLM"/>
+ <library:element library:name="F_Employement_Income"/>
+ <library:element library:name="G_Partnership_Income"/>
+ <library:element library:name="H_Estate_Trust_Income"/>
+ <library:element library:name="I_Computation_of_Car_Benefit"/>
+ <library:element library:name="J_Computation_of_Mortgage"/>
+ <library:element library:name="K_Home_Ownership_Saving_Plan"/>
+ <library:element library:name="L_Computation_of_Insu_Relief"/>
+ <library:element library:name="M_Details_of_PAYE_Deducted"/>
+ <library:element library:name="N_Installment_Tax_Credits"/>
+ <library:element library:name="O_WHT_Credits"/>
+ <library:element library:name="P_Advance_Tax_Credits"/>
+ <library:element library:name="Q_IT_Payment_Credits"/>
+ <library:element library:name="R_Income_Computation_Self"/>
+ <library:element library:name="R_Income_Computation_Wife"/>
+ <library:element library:name="R_R2_Tax_Computation"/>
+ <library:element library:name="Module1"/>
+ <library:element library:name="Module2"/>
+ <library:element library:name="Module3"/>
+ <library:element library:name="AddRemoveListener"/>
+ <library:element library:name="Copy_Paste"/>
+ <library:element library:name="R_DTAA_Credits"/>
+</library:library>

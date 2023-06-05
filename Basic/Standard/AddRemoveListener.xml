@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="AddRemoveListener" script:language="StarBasic">&apos;*************************************
+&apos;Common Function to add Listeners for - Multiple cells (Ranges)
+&apos;Parameters : Sheet name, Logical name, Column of the range, modify listener function name, listener variable and listener object
+&apos;sets Values into global variables defined for each range
+&apos;*************************************
+Sub addKRAListnersMultiCell(sheetName as String,logicalRangeName as String,column as String,modifyFunctionName as string,listner as object,listnerObject as object)
+	Dim Doc, sheet, Cell as Object
+	Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+    Dim endDate as String
+    Dim oRange as object
+    Dim temp as string
+
+	Doc = ThisComponent
+	sheet  = ThisComponent.sheets.getByName(sheetName)
+	oRange = ThisComponent.NamedRanges.getByName(logicalRangeName)
+    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+    
+	listnerObject  = Sheet.getCellrangeByName(column &amp; (startRowNum+1) &amp; &quot;:&quot; &amp; column &amp; (endRowNum+1))
+	listner=createUnoListener(modifyFunctionName,&quot;com.sun.star.util.XModifyListener&quot;)  &apos;create a listener
+	listnerObject.addModifyListener(listner)
+End Sub
+
+&apos;*************************************
+&apos;Common Function to add Listeners for - Single cell
+&apos;Parameters : Sheet name, Logical name, modify listener function name, listener variable and listener object
+&apos;sets Values into global variables defined for each cell
+&apos;*************************************
+Sub addKRAListnersSingleCell(sheetName as String,logicalRangeName as String,modifyFunctionName as string,listner as object,listnerObject as object)
+	Dim Doc, sheet, Cell as Object
+	Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+    Dim endDate as String
+    Dim oRange as object
+    
+	Doc = ThisComponent
+	sheet  = ThisComponent.sheets.getByName(sheetName)
+   
+    listnerObject=sheet.getCellrangeByName(logicalRangeName)
+	listner = createUnoListener(modifyFunctionName,&quot;com.sun.star.util.XModifyListener&quot;) 
+	listnerObject.addModifyListener(listner)  
+End Sub
+
+&apos;*************************************
+&apos;Common Function to remove listeners
+&apos;Parameters : listener variable and listener object
+&apos;removes Values from the  global variables defined for each listener
+&apos;*************************************
+Sub removeKRAListners(listner as object,listnerObject as object)
+	If Not IsNull(listner) then
+	listnerObject.removeModifyListener(listner)
+	end if
+End Sub
+</script:module>

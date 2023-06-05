@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="O_WHT_Credits" script:language="StarBasic">&apos;*************************************
+&apos;Add Row Functionality
+&apos;O_WHT_Credits
+&apos;Case : Self
+&apos;*************************************
+Sub addRow_O_WHT_CreditsList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;WithHolding.ListS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(oPinOfPayer_Listener,oPinOfPayer)
+    call removeKRAListners(oWithCertificateNum_Listener,oWithCertificateNum)
+    call removeKRAListners(oDateOfCertificate_Listener,oDateOfCertificate)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;A&quot;,&quot;oPinOfPayer_Listener_&quot;,oPinOfPayer_Listener,oPinOfPayer)
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;C&quot;,&quot;oWithCertificateNum_Listener_&quot;,oWithCertificateNum_Listener,oWithCertificateNum)
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;D&quot;,&quot;oDateOfCertificate_Listener_&quot;,oDateOfCertificate_Listener,oDateOfCertificate)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Payer
+&apos;O_WHT_Credits
+&apos;Case : Self
+&apos;*************************************
+sub oPinOfPayer_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oPinOfPayer_Listener,oPinOfPayer)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;A&quot;,&quot;oPinOfPayer_Listener_&quot;,oPinOfPayer_Listener,oPinOfPayer)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim PINNo as String
+		Dim taxPyrPINNo as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim carValue as String
+		
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo= currRange.string
+			currRange.string=Ucase(PINNo)
+			row= currRange.getCellAddress().Row 
+			carValue = sheet.getCellByPosition(2,row).string
+			
+			 If PINNo &lt;&gt; &quot;&quot; Then
+			  currRange.string=Ucase(PINNo)
+			    If (TestPIN(PINNo)) Then
+			    	If 	taxPyrPINNo&lt;&gt;&quot;&quot; or taxPyrWifePINNo&lt;&gt;&quot;&quot; then
+							    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+							          	msgStr=msgStr &amp; (row+1)
+							            currRange.string=&quot;&quot;
+							            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+							    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+							    		msgStr=msgStr &amp; (row+1)
+							            currRange.string=&quot;&quot;
+							    		MsgBox msgPinDupWife
+							    Else
+									    	for i=startRowNum to endRowNum
+											
+											 pinCombination=sheet.getCellByPosition(0,i).string
+											 carCombination=sheet.getCellByPosition(2,i).string
+										&apos;	 result = TestDate(dateVal)
+										         if row=i then &apos;Skip
+										         Else
+											         If pinCombination&lt;&gt;&quot;&quot; then
+											            If UCase(pinCombination) = Ucase(PINNo) then
+											            	if UCase(carCombination) = Ucase(carValue) then
+												            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+												            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+												            	currRange.string=&quot;&quot;
+												            	exit for
+											            	end if
+											         	End If
+												     End If    
+												 End If    
+										    Next
+							    End If
+					 Else
+					 		for i=startRowNum to endRowNum
+							
+							 pinCombination=sheet.getCellByPosition(0,i).string
+							 carCombination=sheet.getCellByPosition(2,i).string
+						&apos;	 result = TestDate(dateVal)
+						         if row=i then &apos;Skip
+						         Else
+							         If pinCombination&lt;&gt;&quot;&quot; then
+							            If UCase(pinCombination) = Ucase(PINNo) then
+							            	if UCase(carCombination) = Ucase(carValue) then
+								            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	currRange.string=&quot;&quot;
+								            	exit for
+							            	end if
+							         	End If
+								     End If    
+								 End If    
+						    Next
+					 End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter PIN of Withholder in proper format.&quot;
+		  	    End If
+		     End If
+		End If
+		
+	&apos;***	
+	  	protectsheet(&quot;O_WHT_Credits&quot;)
+	End If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;A&quot;,&quot;oPinOfPayer_Listener_&quot;,oPinOfPayer_Listener,oPinOfPayer)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Date Of Certificate
+&apos;O_WHT_Credits
+&apos;Case : Self
+&apos;*************************************
+sub oDateOfCertificate_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oDateOfCertificate_Listener,oDateOfCertificate)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;D&quot;,&quot;oDateOfCertificate_Listener_&quot;,oDateOfCertificate_Listener,oDateOfCertificate)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim dateVal As String 
+		Dim startDate as String
+	    Dim endDate as String
+		unprotectsheet(&quot;A_Basic_Info&quot;)
+		startDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+		endDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+		protectsheet(&quot;A_Basic_Info&quot;) 
+		
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			dateVal= currRange.string
+			row= currRange.getCellAddress().Row 	
+	
+	&apos;	 result = TestDate(dateVal)
+	         If dateVal&lt;&gt;&quot;&quot; then
+	          If  ValidateDate(dateVal) then
+		           If  checkFutureDate(dateVal) = False Then
+		   	   		    	futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+					   		MsgBox &quot;Date of certificate in Row &quot; &amp; futureDtMsgStr &amp; &quot; cannot be current/future Date.&quot;
+		   		    	    currRange.string=&quot;&quot;
+		   		   Else
+		   		   		If (startDate = &quot;&quot;) OR ValidateDate(startDate)=False Or (endDate = &quot;&quot;) Or ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+	            		 MsgBox msgEntrPrdDate
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+			            ElseIf checkGrtrThnDate(startDate,dateVal)=False then
+		   		   			futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+					   		MsgBox &quot;Date of Certificate in Row &quot; &amp; futureDtMsgStr &amp; &quot; should be after Return Period From Date and on or before current date.&quot;
+		   		    	    currRange.string=&quot;&quot;	
+					    End If
+		  	       End If
+			  Else
+			  		msgStr = msgStr &amp; (row+1) 
+			   		MsgBox  &quot;Please enter date value in dd/mm/yyyy format.&quot;
+	    		    currRange.string=&quot;&quot;
+			  End If	 
+	         End If
+	     End If   
+	   	protectsheet(&quot;O_WHT_Credits&quot;) 
+		end If
+	  sheet.protect(Pwd)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;D&quot;,&quot;oDateOfCertificate_Listener_&quot;,oDateOfCertificate_Listener,oDateOfCertificate)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Withholding Certificate Number
+&apos;O_WHT_Credits
+&apos;Case : Self
+&apos;*************************************
+sub oWithCertificateNum_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oWithCertificateNum_Listener,oWithCertificateNum)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;C&quot;,&quot;oWithCertificateNum_Listener_&quot;,oWithCertificateNum_Listener,oWithCertificateNum)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim PRNNo As String 
+		Dim testPRNNo As String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim pinValue as String
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PRNNo=currRange.string
+			currRange.string=UCase(PRNNo)
+			row= currRange.getCellAddress().Row 
+			pinValue = sheet.getCellByPosition(0,row).string
+			
+			for i=startRowNum to endRowNum
+							
+			 pinCombination=sheet.getCellByPosition(0,i).string
+			 carCombination=sheet.getCellByPosition(2,i).string
+		&apos;	 result = TestDate(dateVal)
+	         if row=i then &apos;Skip
+		         Else
+		         If carCombination&lt;&gt;&quot;&quot; then
+		            If UCase(carCombination) = Ucase(PRNNo) then
+		            	if UCase(pinCombination) = Ucase(pinValue) then
+			            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; PRNNo &amp; &quot; for PIN of Employer &quot; &amp; pinValue &amp; &quot; in Row &quot; &amp; row
+			            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+			            	currRange.string=&quot;&quot;
+			            	exit for
+			           	end if
+			       	End If
+			     End If    
+			 End If    
+			Next
+	     End If   
+	   	protectsheet(&quot;O_WHT_Credits&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListS&quot;,&quot;C&quot;,&quot;oWithCertificateNum_Listener_&quot;,oWithCertificateNum_Listener,oWithCertificateNum)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;O_WHT_Credits
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_O_WHT_CreditsListWife()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;WithHolding.ListW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(oPinOfPayerW_Listener,oPinOfPayerW)
+    call removeKRAListners(oWithCertificateNumW_Listener,oWithCertificateNumW)
+    call removeKRAListners(oDateOfCertificateW_Listener,oDateOfCertificateW)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;A&quot;,&quot;oPinOfPayerW_Listener_&quot;,oPinOfPayerW_Listener,oPinOfPayerW)
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;C&quot;,&quot;oWithCertificateNumW_Listener_&quot;,oWithCertificateNumW_Listener,oWithCertificateNumW)
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;D&quot;,&quot;oDateOfCertificateW_Listener_&quot;,oDateOfCertificateW_Listener,oDateOfCertificateW)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Pin Of Payer
+&apos;O_WHT_Credits
+&apos;Case : Wife
+&apos;*************************************
+sub oPinOfPayerW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oPinOfPayerW_Listener,oPinOfPayerW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;A&quot;,&quot;oPinOfPayerW_Listener_&quot;,oPinOfPayerW_Listener,oPinOfPayerW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;A&quot;&amp;(startRowNum+1)&amp;&quot;:A&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim PINNo as String
+		Dim taxPyrPINNo as String
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		Dim taxPyrWifePINNo as String
+		Dim declareWifeIncome as String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim carValue as String
+		
+		sheet=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;)
+		taxPyrPINNo= sheet.getCellrangeByName(&quot;RetInf.PIN&quot;).string
+		taxPyrWifePINNo=ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.SpousePIN&quot;).string
+		declareWifeIncome = ThisComponent.sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.DeclareWifeIncome&quot;).string
+		sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PINNo= currRange.string
+			currRange.string=Ucase(PINNo)
+			row= currRange.getCellAddress().Row 
+			carValue = sheet.getCellByPosition(2,row).string
+			
+			 If PINNo &lt;&gt; &quot;&quot; Then
+			  currRange.string=Ucase(PINNo)
+			    If (TestPIN(PINNo)) Then
+			    	If 	taxPyrPINNo&lt;&gt;&quot;&quot; or taxPyrWifePINNo&lt;&gt;&quot;&quot; then
+					    If (Ucase(PINNo) = Ucase(taxPyrPINNo)) Then
+					          	msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					            MsgBox &quot;PIN entered should not be same as Taxpayer&apos;s PIN.&quot;
+					    ElseIf UCase(taxPyrWifePINNo) = Ucase(PINNo) and declareWifeIncome&lt;&gt;&quot;No&quot; then
+					    		msgStr=msgStr &amp; (row+1)
+					            currRange.string=&quot;&quot;
+					    		MsgBox msgPinDupWife
+					    Else
+					    	for i=startRowNum to endRowNum
+							
+							 pinCombination=sheet.getCellByPosition(0,i).string
+							 carCombination=sheet.getCellByPosition(2,i).string
+						&apos;	 result = TestDate(dateVal)
+						         if row=i then &apos;Skip
+						         Else
+							         If pinCombination&lt;&gt;&quot;&quot; then
+							            If UCase(pinCombination) = Ucase(PINNo) then
+							            	if UCase(carCombination) = Ucase(carValue) then
+								            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	currRange.string=&quot;&quot;
+								            	exit for
+							            	end if
+							         	End If
+								     End If    
+								 End If    
+						    Next
+					    End If
+					  Else
+					  		for i=startRowNum to endRowNum
+							
+							 pinCombination=sheet.getCellByPosition(0,i).string
+							 carCombination=sheet.getCellByPosition(2,i).string
+						&apos;	 result = TestDate(dateVal)
+						         if row=i then &apos;Skip
+						         Else
+							         If pinCombination&lt;&gt;&quot;&quot; then
+							            If UCase(pinCombination) = Ucase(PINNo) then
+							            	if UCase(carCombination) = Ucase(carValue) then
+								            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; carValue &amp; &quot; for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+								            	currRange.string=&quot;&quot;
+								            	exit for
+							            	end if
+							         	End If
+								     End If    
+								 End If    
+						    Next
+					 End If
+		  	    Else
+	   	    		msgStr=msgStr &amp; (row+1)
+	   	    		currRange.string=&quot;&quot;
+					MsgBox &quot;Please enter PIN of Withholder in proper format.&quot;
+		  	    End If
+		     End If
+		End If
+		
+	&apos;***	
+	  	protectsheet(&quot;O_WHT_Credits&quot;)
+	End If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;A&quot;,&quot;oPinOfPayerW_Listener_&quot;,oPinOfPayerW_Listener,oPinOfPayerW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Date Of Certificate
+&apos;O_WHT_Credits
+&apos;Case : Wife
+&apos;*************************************
+sub oDateOfCertificateW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oDateOfCertificateW_Listener,oDateOfCertificateW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;D&quot;,&quot;oDateOfCertificateW_Listener_&quot;,oDateOfCertificateW_Listener,oDateOfCertificateW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim dateVal As String 
+		Dim startDate as String
+	    Dim endDate as String
+		unprotectsheet(&quot;A_Basic_Info&quot;)
+		startDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetStartDate&quot;).string
+		endDate =    ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+		protectsheet(&quot;A_Basic_Info&quot;) 
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			dateVal= currRange.string
+			row= currRange.getCellAddress().Row 	
+	
+	&apos;	 result = TestDate(dateVal)
+	         If dateVal&lt;&gt;&quot;&quot; then
+	          If  ValidateDate(dateVal) then
+		           If  checkFutureDate(dateVal) = False Then
+		   	   		    	futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+					   		MsgBox &quot;Date of certificate in Row &quot; &amp; futureDtMsgStr &amp; &quot; cannot be current/future Date.&quot;
+		   		    	    currRange.string=&quot;&quot;
+		   		   Else
+		   		   		If (startDate = &quot;&quot;) OR ValidateDate(startDate)=False Or (endDate = &quot;&quot;) Or ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+	            		 MsgBox msgEntrPrdDate
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+			            ElseIf checkGrtrThnDate(startDate,dateVal)=False then
+		   		   			futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+					   		MsgBox &quot;Date of Certificate in Row &quot; &amp; futureDtMsgStr &amp; &quot; should be after Return Period From Date and on or before current date.&quot;
+		   		    	    currRange.string=&quot;&quot;	
+					    End If
+		  	       End If
+			  Else
+			  		msgStr = msgStr &amp; (row+1) 
+			   		MsgBox  &quot;Please enter date value in dd/mm/yyyy format.&quot;
+	    		    currRange.string=&quot;&quot;
+			  End If	 
+	         End If
+	     End If   
+	   	protectsheet(&quot;O_WHT_Credits&quot;) 
+		end If
+	  sheet.protect(Pwd)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;D&quot;,&quot;oDateOfCertificateW_Listener_&quot;,oDateOfCertificateW_Listener,oDateOfCertificateW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Witholding Certificate Number
+&apos;O_WHT_Credits
+&apos;Case : Wife
+&apos;*************************************
+sub oWithCertificateNumW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(oWithCertificateNumW_Listener,oWithCertificateNumW)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;C&quot;,&quot;oWithCertificateNumW_Listener_&quot;,oWithCertificateNumW_Listener,oWithCertificateNumW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+	
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    Dim sheet as Object
+	    
+	    sheet=ThisComponent.sheets.getByName(&quot;O_WHT_Credits&quot;)
+	    sheet.Unprotect(Pwd)
+	    Dim dateFlag as Boolean
+	    Dim msgStr As string
+	
+	  	oRange = ThisComponent.NamedRanges.getByName(&quot;WithHolding.ListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		startRowNum = oColRange.getRangeAddress().StartRow
+	    endRowNum = oColRange.getRangeAddress().EndRow
+	
+		unprotectsheet(&quot;O_WHT_Credits&quot;)
+		Dim PRNNo As String 
+		Dim testPRNNo As String
+		Dim pinCombination as String
+		Dim carCombination as String
+		Dim pinValue as String
+	&apos;***	
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			PRNNo=currRange.string
+			currRange.string=UCase(PRNNo)
+			row= currRange.getCellAddress().Row 
+			pinValue = sheet.getCellByPosition(0,row).string
+			
+			for i=startRowNum to endRowNum
+							
+			 pinCombination=sheet.getCellByPosition(0,i).string
+			 carCombination=sheet.getCellByPosition(2,i).string
+		&apos;	 result = TestDate(dateVal)
+	         if row=i then &apos;Skip
+		         Else
+		         If carCombination&lt;&gt;&quot;&quot; then
+		            If UCase(carCombination) = Ucase(PRNNo) then
+		            	if UCase(pinCombination) = Ucase(pinValue) then
+			            	&apos;MsgBox &quot;You have already entered details for &quot; &amp; PRNNo &amp; &quot; for PIN of Employer &quot; &amp; pinValue &amp; &quot; in Row &quot; &amp; row
+			            	MsgBox &quot;The Withholding Certificate Number &quot; &amp; carValue &amp; &quot; has already been entered for PIN of Employer &quot; &amp; PINNo &amp; &quot; in Row &quot; &amp; row
+			            	currRange.string=&quot;&quot;
+			            	exit for
+			           	end if
+			       	End If
+			     End If    
+			 End If    
+			Next
+	     End If   
+	   	protectsheet(&quot;O_WHT_Credits&quot;) 
+	end If
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;O_WHT_Credits&quot;,&quot;WithHolding.ListW&quot;,&quot;C&quot;,&quot;oWithCertificateNumW_Listener_&quot;,oWithCertificateNumW_Listener,oWithCertificateNumW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+</script:module>

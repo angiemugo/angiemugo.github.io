@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="R_DTAA_Credits" script:language="StarBasic">Sub addRow_R_DTAA_credits_S()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;DTAACredits.DetailsS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(RTaxRefDateS_Listener,RTaxRefDateS)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsS&quot;,&quot;C&quot;,&quot;RTaxRefDateS_Listener_&quot;,RTaxRefDateS_Listener,RTaxRefDateS)
+    notCallListener = false
+End Sub
+Sub addRow_R_DTAA_credits_W()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;DTAACredits.DetailsW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(RTaxRefDateW_Listener,RTaxRefDateW)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsW&quot;,&quot;C&quot;,&quot;RTaxRefDateW_Listener_&quot;,RTaxRefDateW_Listener,RTaxRefDateW)
+    notCallListener = false
+End Sub
+
+sub RTaxRefDateS_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(RTaxRefDateS_Listener,RTaxRefDateS)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsS&quot;,&quot;C&quot;,&quot;RTaxRefDateS_Listener_&quot;,RTaxRefDateS_Listener,RTaxRefDateS)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	endDate =     ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+	protectsheet(&quot;A_Basic_Info&quot;)
+	
+	sheet=ThisComponent.sheets.getByName(&quot;R_DTAA_Credits&quot;)
+	sheet.Unprotect(Pwd)
+	
+	oRange = ThisComponent.NamedRanges.getByName(&quot;DTAACredits.DetailsS&quot;)
+    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+	oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+	currRange = ThisComponent.getCurrentSelection() 
+	
+	If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+		dateVal= currRange.string
+		row= currRange.getCellAddress().Row 	
+
+         If dateVal&lt;&gt;&quot;&quot; then
+	          If  ValidateDate(dateVal) then
+		           If (endDate = &quot;&quot;) OR ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+	            		 MsgBox &quot;Please enter the date in Return From in Section A first.&quot;
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+	              		 currRange.string=&quot;&quot;
+	            	Else
+			   		   If checkGrtrThnDate(dateVal,endDate)=False then
+			   		   			futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+						   		MsgBox &quot;Date of Deposit in Row &quot; &amp; futureDtMsgStr &amp; &quot; should be before and upto Return Period To Date.&quot; 
+			   		    	    currRange.string=&quot;&quot;
+			  	       End If
+		  	    	End If
+			  Else
+			  		msgStr = msgStr &amp; (row+1) 
+			   		MsgBox  &quot;Please enter date value in dd/mm/yyyy format.&quot;
+	    		    currRange.string=&quot;&quot;
+			  End If	 
+         End If
+    End If   
+   	protectsheet(&quot;R_DTAA_Credits&quot;) 
+	
+	call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsS&quot;,&quot;C&quot;,&quot;RTaxRefDateS_Listener_&quot;,RTaxRefDateS_Listener,RTaxRefDateS)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+sub RTaxRefDateW_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(RTaxRefDateW_Listener,RTaxRefDateW)
+	
+	&apos;code
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsW&quot;,&quot;C&quot;,&quot;RTaxRefDateW_Listener_&quot;,RTaxRefDateW_Listener,RTaxRefDateW)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	unprotectsheet(&quot;A_Basic_Info&quot;)
+	endDate =     ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;).getCellrangeByName(&quot;RetInf.RetEndDate&quot;).string
+	protectsheet(&quot;A_Basic_Info&quot;)
+	
+	sheet=ThisComponent.sheets.getByName(&quot;R_DTAA_Credits&quot;)
+	sheet.Unprotect(Pwd)
+	
+	oRange = ThisComponent.NamedRanges.getByName(&quot;DTAACredits.DetailsW&quot;)
+    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+	oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+	currRange = ThisComponent.getCurrentSelection() 
+	
+	If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+		dateVal= currRange.string
+		row= currRange.getCellAddress().Row 	
+
+         If dateVal&lt;&gt;&quot;&quot; then
+	          If  ValidateDate(dateVal) then
+		           If (endDate = &quot;&quot;) OR ValidateDate(endDate)=False Then
+			       	     currRange.string = &quot;&quot;
+	            		 MsgBox &quot;Please enter the date in Return From in Section A first.&quot;
+	              		 ThisComponent.CurrentController.setActiveSheet(ThisComponent.Sheets.getByName(&quot;A_Basic_Info&quot;))
+	              		 currRange.string=&quot;&quot;
+	            	Else
+			   		   If checkGrtrThnDate(dateVal,endDate)=False then
+			   		   			futureDtMsgStr = futureDtMsgStr &amp; (row+1)
+						   		MsgBox &quot;Date of Deposit in Row &quot; &amp; futureDtMsgStr &amp; &quot; should be before and upto Return Period To Date.&quot; 
+			   		    	    currRange.string=&quot;&quot;
+			  	       End If
+		  	    	End If
+			  Else
+			  		msgStr = msgStr &amp; (row+1) 
+			   		MsgBox  &quot;Please enter date value in dd/mm/yyyy format.&quot;
+	    		    currRange.string=&quot;&quot;
+			  End If	 
+         End If
+    End If   
+   	protectsheet(&quot;R_DTAA_Credits&quot;) 
+	
+	call addKRAListnersMultiCell(&quot;R_DTAA_Credits&quot;,&quot;DTAACredits.DetailsW&quot;,&quot;C&quot;,&quot;RTaxRefDateW_Listener_&quot;,RTaxRefDateW_Listener,RTaxRefDateW)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+
+</script:module>

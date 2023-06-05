@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="R_Income_Computation_Wife" script:language="StarBasic">&apos;*************************************
+&apos;Add Row Functionality
+&apos;T_Income_Computation_Wife - Part1
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_R_Income_Computation_WifeList1()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;TaxComp.OthExpListW&quot;)
+    &apos;Add All Remove Listeners
+    &apos;Add All Add Listeners
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;T_Income_Computation_Wife - Part2
+&apos;Case : Wfie
+&apos;*************************************
+Sub addRow_R_Income_Computation_WifeList2()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;TaxComp.OthDedListW&quot;)
+    &apos;Add All Remove Listeners
+    &apos;Add All Add Listeners
+    notCallListener = false
+End Sub
+</script:module>

@@ -1,0 +1,1015 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="D_Stock_Detail" script:language="StarBasic">&apos;*************************************
+&apos;Add Row Functionality
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Self
+&apos;*************************************
+Sub addRow_D_Stock_DetailLIList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;Inv.QuantDtlsListS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(dOpeningStockList1_Listener,dOpeningStockList1)
+    call removeKRAListners(dPurchaseList1_Listener,dPurchaseList1)
+    call removeKRAListners(dSalesList1_Listener,dSalesList1)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;C&quot;,&quot;dOpeningStockList1_Listener_&quot;,dOpeningStockList1_Listener,dOpeningStockList1)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;D&quot;,&quot;dPurchaseList1_Listener_&quot;,dPurchaseList1_Listener,dPurchaseList1)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;E&quot;,&quot;dSalesList1_Listener_&quot;,dSalesList1_Listener,dSalesList1)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Self
+&apos;*************************************
+Sub addRow_D_Stock_DetailLII_2List()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;Inv.QuantDtlsListKIIS&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(dOpeningStockList2_Listener,dOpeningStockList2)
+    call removeKRAListners(dPurchaseList2_Listener,dPurchaseList2)
+    call removeKRAListners(dSalesList2_Listener,dSalesList2)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;C&quot;,&quot;dOpeningStockList2_Listener_&quot;,dOpeningStockList2_Listener,dOpeningStockList2)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;D&quot;,&quot;dPurchaseList2_Listener_&quot;,dPurchaseList2_Listener,dPurchaseList2)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;F&quot;,&quot;dSalesList2_Listener_&quot;,dSalesList2_Listener,dSalesList2)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Opening Stock
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Self
+&apos;*************************************
+sub dOpeningStockList1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dOpeningStockList1_Listener,dOpeningStockList1)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;C&quot;,&quot;dOpeningStockList1_Listener_&quot;,dOpeningStockList1_Listener,dOpeningStockList1)
+    	thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			openingStock = currRange.value
+			row = currRange.getCellAddress().Row 
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			salesQuantity = sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			
+			If purchaseString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+	Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;C&quot;,&quot;dOpeningStockList1_Listener_&quot;,dOpeningStockList1_Listener,dOpeningStockList1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Purchase
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Self
+&apos;*************************************
+sub dPurchaseList1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dPurchaseList1_Listener,dPurchaseList1)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;D&quot;,&quot;dPurchaseList1_Listener_&quot;,dPurchaseList1_Listener,dPurchaseList1)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	&apos;.value=CBL(value)  
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			purchase = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+	
+			If openingStockString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;D&quot;,&quot;dPurchaseList1_Listener_&quot;,dPurchaseList1_Listener,dPurchaseList1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Sales
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Self
+&apos;*************************************
+sub dSalesList1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dSalesList1_Listener,dSalesList1)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;E&quot;,&quot;dSalesList1_Listener_&quot;,dSalesList1_Listener,dSalesList1)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	 
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;E&quot;&amp;(startRowNum+1)&amp;&quot;:E&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			salesQuantity = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			If openingStockString &lt;&gt; 0 Or purchaseString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) then
+				 currRange.string=&quot;&quot;
+	   		     Msgbox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+	
+		Protectsheet(&quot;D_Stock_Analysis&quot;)	
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListS&quot;,&quot;E&quot;,&quot;dSalesList1_Listener_&quot;,dSalesList1_Listener,dSalesList1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+	
+&apos;*************************************
+&apos;Check on Opening Stock
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Self
+&apos;*************************************
+sub dOpeningStockList2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dOpeningStockList2_Listener,dOpeningStockList2)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;C&quot;,&quot;dOpeningStockList2_Listener_&quot;,dOpeningStockList2_Listener,dOpeningStockList2)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			openingStock = currRange.value
+			row = currRange.getCellAddress().Row 
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			If purchaseString &lt;&gt; &quot;&quot; and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox &quot;Sales Quantity should be less than or equal to sum of Opening Stock and Purchase Less Consumption.&quot;
+			End if
+			End if
+		End If
+	End if
+	Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;C&quot;,&quot;dOpeningStockList2_Listener_&quot;,dOpeningStockList2_Listener,dOpeningStockList2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Purchase
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Self
+&apos;*************************************
+sub dPurchaseList2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dPurchaseList2_Listener,dPurchaseList2)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;D&quot;,&quot;dPurchaseList2_Listener_&quot;,dPurchaseList2_Listener,dPurchaseList2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	&apos;.value=CBL(value)  
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			purchase = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			
+			If openingStockString &lt;&gt; &quot;&quot; and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQtyCon
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;D&quot;,&quot;dPurchaseList2_Listener_&quot;,dPurchaseList2_Listener,dPurchaseList2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Sales
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Self
+&apos;*************************************
+sub dSalesList2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dSalesList2_Listener,dSalesList2)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;F&quot;,&quot;dSalesList2_Listener_&quot;,dSalesList2_Listener,dSalesList2)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	 
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;F&quot;&amp;(startRowNum+1)&amp;&quot;:F&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim consumption as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			salesQuantity = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			
+			If openingStockString &lt;&gt;&quot;&quot; Or purchaseString &lt;&gt;&quot;&quot; and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) then
+				 currRange.string=&quot;&quot;
+	   		     Msgbox msgSaleQtyCon
+			End if
+			End if
+		End If
+	End if
+	
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;F&quot;,&quot;dSalesList2_Listener_&quot;,dSalesList2_Listener,dSalesList2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Consumption
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Self
+&apos;*************************************
+sub dConsumption2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dConsumption2_Listener,dConsumption2)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;D&quot;,&quot;dPurchaseList2_Listener_&quot;,dPurchaseList2_Listener,dPurchaseList2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	&apos;.value=CBL(value)  
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIS&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Double
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			consumption = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			purchase= sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseStr= sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).String
+		
+			If openingStockString &lt;&gt; &quot;&quot; and purchaseStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox &quot;Consumption should be less than or equal to sum of Opening Stock and Purchase Less Sales Quantity.&quot;
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIS&quot;,&quot;E&quot;,&quot;dConsumption2_Listener_&quot;,dConsumption2_Listener,dConsumption2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_D_Stock_DetailLIWifeList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;Inv.QuantDtlsListW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(dOpeningStockListW1_Listener,dOpeningStockListW1)
+    call removeKRAListners(dPurchaseListW1_Listener,dPurchaseListW1)
+    call removeKRAListners(dSalesListW1_Listener,dSalesListW1)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;C&quot;,&quot;dOpeningStockListW1_Listener_&quot;,dOpeningStockListW1_Listener,dOpeningStockListW1)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;D&quot;,&quot;dPurchaseListW1_Listener_&quot;,dPurchaseListW1_Listener,dPurchaseListW1)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;E&quot;,&quot;dSalesListW1_Listener_&quot;,dSalesListW1_Listener,dSalesListW1)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Add Row Functionality
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Wife
+&apos;*************************************
+Sub addRow_D_Stock_DetailLII_2WifeList()
+	notCallListener = true
+    Call InsertRowsAndFillFormulas(&quot;Inv.QuantDtlsListKIIW&quot;)
+    &apos;Add All Remove Listeners
+    call removeKRAListners(dOpeningStockListW2_Listener,dOpeningStockListW2)
+    call removeKRAListners(dPurchaseListW2_Listener,dPurchaseListW2)
+    call removeKRAListners(dSalesListW2_Listener,dSalesListW2)
+    &apos;Add All Add Listeners
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;C&quot;,&quot;dOpeningStockListW2_Listener_&quot;,dOpeningStockListW2_Listener,dOpeningStockListW2)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;D&quot;,&quot;dPurchaseListW2_Listener_&quot;,dPurchaseListW2_Listener,dPurchaseListW2)
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;F&quot;,&quot;dSalesListW2_Listener_&quot;,dSalesListW2_Listener,dSalesListW2)
+    notCallListener = false
+End Sub
+
+&apos;*************************************
+&apos;Check on Opening Stock
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Wife
+&apos;*************************************
+sub dOpeningStockListW1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dOpeningStockListW1_Listener,dOpeningStockListW1)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;C&quot;,&quot;dOpeningStockListW1_Listener_&quot;,dOpeningStockListW1_Listener,dOpeningStockListW1)
+    	thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Double
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			openingStock = currRange.value
+			row = currRange.getCellAddress().Row 
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			salesQuantity = sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			
+			If purchaseString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+	Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;C&quot;,&quot;dOpeningStockListW1_Listener_&quot;,dOpeningStockListW1_Listener,dOpeningStockListW1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Purchase
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Wife
+&apos;*************************************
+sub dPurchaseListW1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dPurchaseListW1_Listener,dPurchaseListW1)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;D&quot;,&quot;dPurchaseListW1_Listener_&quot;,dPurchaseListW1_Listener,dPurchaseListW1)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	&apos;.value=CBL(value)  
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			purchase = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+	
+			If openingStockString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;D&quot;,&quot;dPurchaseListW1_Listener_&quot;,dPurchaseListW1_Listener,dPurchaseListW1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Sales
+&apos;D_Stock_Analysis - Part1
+&apos;Case : Wife
+&apos;*************************************
+sub dSalesListW1_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dSalesListW1_Listener,dSalesListW1)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;E&quot;,&quot;dSalesListW1_Listener_&quot;,dSalesListW1_Listener,dSalesListW1)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	 
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;E&quot;&amp;(startRowNum+1)&amp;&quot;:E&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			salesQuantity = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			If openingStockString &lt;&gt; 0 Or purchaseString &lt;&gt; 0 then
+			If (salesQuantity &gt; (openingStock + purchase)) then
+				 currRange.string=&quot;&quot;
+	   		     Msgbox msgSaleQty
+			End if
+			End if
+		End If
+	End if
+	
+		Protectsheet(&quot;D_Stock_Analysis&quot;)	
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListW&quot;,&quot;E&quot;,&quot;dSalesListW1_Listener_&quot;,dSalesListW1_Listener,dSalesListW1)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+	
+&apos;*************************************
+&apos;Check on Opening Stock
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Wife
+&apos;*************************************
+sub dOpeningStockListW2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dOpeningStockListW2_Listener,dOpeningStockListW2)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;C&quot;,&quot;dOpeningStockListW2_Listener_&quot;,dOpeningStockListW2_Listener,dOpeningStockListW2)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;C&quot;&amp;(startRowNum+1)&amp;&quot;:C&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			openingStock = currRange.value
+			row = currRange.getCellAddress().Row 
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			If purchaseString &lt;&gt; &quot;&quot; and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQtyCon
+			End if
+			End if
+		End If
+	End if
+	Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;C&quot;,&quot;dOpeningStockListW2_Listener_&quot;,dOpeningStockListW2_Listener,dOpeningStockListW2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub		
+
+&apos;*************************************
+&apos;Check on Purchase
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Wife
+&apos;*************************************
+sub dPurchaseListW2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dPurchaseListW2_Listener,dPurchaseListW2)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;D&quot;,&quot;dPurchaseListW2_Listener_&quot;,dPurchaseListW2_Listener,dPurchaseListW2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	&apos;.value=CBL(value)  
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			purchase = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			
+			If openingStockString &lt;&gt; &quot;&quot; and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox msgSaleQtyCon
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;D&quot;,&quot;dPurchaseListW2_Listener_&quot;,dPurchaseListW2_Listener,dPurchaseListW2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Sales
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Wife
+&apos;*************************************
+sub dSalesListW2_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dSalesListW2_Listener,dSalesListW2)
+	
+	&apos;code
+		
+	oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;F&quot;,&quot;dSalesListW2_Listener_&quot;,dSalesListW2_Listener,dSalesListW2)
+	    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	 
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;F&quot;&amp;(startRowNum+1)&amp;&quot;:F&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+		Dim openingStock as Double
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			salesQuantity = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			purchase = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseString = sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).string
+			consumption= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).value
+			consumptionStr= sheet.getCellrangeByName(&quot;E&quot; &amp; (row+1) &amp; &quot;:E&quot; &amp; (row+1)).String
+			
+			If openingStockString &lt;&gt; 0 Or purchaseString &lt;&gt; 0 and consumptionStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) then
+				 currRange.string=&quot;&quot;
+	   		     Msgbox msgSaleQtyCon
+			End if
+			End if
+		End If
+	End if
+	
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;F&quot;,&quot;dSalesListW2_Listener_&quot;,dSalesListW2_Listener,dSalesListW2)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+
+&apos;*************************************
+&apos;Check on Consumption
+&apos;D_Stock_Analysis - Part2
+&apos;Case : Wife
+&apos;*************************************
+sub dConsumption2W_Listener_modified(oEv)
+	if (notCallListener) then  
+		exit Sub  
+	end if &apos; Added By KANDARP 
+	thisComponent.CurrentController.Frame.ContainerWindow.Enable= False
+	call removeKRAListners(dConsumption2W_Listener,dConsumption2W)
+	
+	&apos;code
+		
+		oSheet = ThisComponent.CurrentController.getActiveSheet() 
+	&apos;*******************************
+	&apos;Code Added to restrict Listeners to be called while Amendment
+	if  oSheet.name = &quot;Amendment&quot; then
+		call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;D&quot;,&quot;dConsumption2W_Listener_&quot;,dConsumption2W_Listener,dConsumption2W)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+		Exit sub
+	End If
+	&apos;*******************************
+	if(oSheet.name&lt;&gt;&quot;A_Basic_Info&quot;) then
+		Dim startRowNum as Long , endRowNum as Long, startColumnNum as Long , endcolumnNum as Long
+	    oRange = ThisComponent.NamedRanges.getByName(&quot;Inv.QuantDtlsListKIIW&quot;)
+	    startRowNum = oRange.getReferredCells().getRangeAddress().StartRow
+	    endRowNum = oRange.getReferredCells().getRangeAddress().EndRow
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+		oColRange = sheet.getCellrangeByName(&quot;D&quot;&amp;(startRowNum+1)&amp;&quot;:D&quot;&amp;(endRowNum+1))
+		Unprotectsheet(&quot;D_Stock_Analysis&quot;)
+	&apos;	Dim openingStock as Long
+		Dim purchase as Double
+		Dim salesQuantity as Double
+		Dim consumption as Double
+		Dim msgStr As String
+		Dim currRange as Object
+		Dim row As Long
+		
+		sheet=ThisComponent.sheets.getByName(&quot;D_Stock_Analysis&quot;)
+	&apos;***
+		currRange = ThisComponent.getCurrentSelection() 
+		If Not IsNull(oColRange.queryintersection(currRange.rangeaddress)) and (currRange.supportsService(&quot;com.sun.star.sheet.SheetCell&quot;)) then
+			consumption = currRange.value
+			row = currRange.getCellAddress().Row 
+			openingStock = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).value
+			openingStockString = sheet.getCellrangeByName(&quot;C&quot; &amp; (row+1) &amp; &quot;:C&quot; &amp; (row+1)).string
+			salesQuantity = sheet.getCellrangeByName(&quot;F&quot; &amp; (row+1) &amp; &quot;:F&quot; &amp; (row+1)).value
+			purchase= sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).value
+			purchaseStr= sheet.getCellrangeByName(&quot;D&quot; &amp; (row+1) &amp; &quot;:D&quot; &amp; (row+1)).String
+		
+			If openingStockString &lt;&gt; &quot;&quot; and purchaseStr&lt;&gt;&quot;&quot; then
+			If (salesQuantity &gt; (openingStock + purchase-consumption)) and currRange.string&lt;&gt;&quot;&quot; then
+	   		     currRange.string=&quot;&quot;
+	   		     MsgBox &quot;Consumption should be less than or equal to sum of Opening Stock and Purchase Less Sales Quantity.&quot;
+			End if
+			End if
+		End If
+	End if
+		Protectsheet(&quot;D_Stock_Analysis&quot;)
+	
+	&apos;code
+	
+	call addKRAListnersMultiCell(&quot;D_Stock_Analysis&quot;,&quot;Inv.QuantDtlsListKIIW&quot;,&quot;E&quot;,&quot;dConsumption2W_Listener_&quot;,dConsumption2W_Listener,dConsumption2W)
+    thisComponent.CurrentController.Frame.ContainerWindow.Enable= True
+end sub
+</script:module>
