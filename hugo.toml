@@ -14,7 +14,7 @@ author = "Angie Mugo"
 # license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
 description = "Angie Mugo's personal website"
 keywords = "blog, developer, personal"
-info = ["iOS, MacOS Engineer", "Author"]
+info = ["iOS, macOS Engineer", "Author"]
 avatarURL = "images/avatar.jpg"
 #gravatar = "john.doe@example.com"
 dateFormat = "January 2, 2006"
@@ -29,7 +29,7 @@ rtl = false
 # "auto" (use preference set by browser)
 # "dark" (dark background, light foreground)
 # "light" (light background, dark foreground) (default)
-colorScheme = "auto"
+colorScheme = "dark"
 # Hide the toggle button, along with the associated vertical divider
 hideColorSchemeToggle = false
 # Series see also post count
@@ -73,7 +73,7 @@ url = "https://www.linkedin.com/in/angiemugo/"
 name = "Medium"
 icon = "fa fa-2x fa-medium"
 weight = 4
-url = "https://medium.com/@angela.mugo"
+url = "https://www.linkedin.com/in/angela-mugo-ab933574"
 
 
 [languages.en]
