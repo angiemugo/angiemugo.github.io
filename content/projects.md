@@ -14,8 +14,7 @@ slug = "projects"
     [The Swift API](https://github.com/apps-fab/ExercismSwift) is still using completion handlers. 
     - Accesibility is also a big part of this process. I have been paying attention to the accesibility APIs that apple provides and so while building this, it was also a large part of our learning.
     - Design, this has been fun for me especially and I am still learning. I know how to build a simple product but I struggle with making it appealing. 
-
-Goal 
+* **The Goal**
 - In the next month or so I want to put this thing out in the public 
 
 
@@ -23,14 +22,18 @@ Goal
 * [Vaazi](https://github.com/vaazi) is a Kiswahili word that means outfit. This an e-commerce platfrom I am building with a bunch of insanely talented individuals. 
 * The biggest component of this is image search. We are building a searching feature using computer vision. 
 
-* The challenges 
+* **The challenges**
     - The team has very limited machine learning knowledge but very big aspirations 
     - Computer vision is a tough area, Fashion machine learning on the other hang is tougher than we anticipated
-* All the fun 
+* **All the fun**
     - There is a lot of courses on machine learning available and I have found a lot that have made things easier 
     - Pinterest have extensively documented their process of building the image search feature and we have learnt so much from them 
     - [MMFashion](https://github.com/open-mmlab/mmfashion/tree/master) has also been ver helpful and we are using the open source models to customise them for our usecase 
 
-*** Once a Swift girl, always a swift girl? Nope!**
+* **Once a Swift girl, always a swift girl? Nope!**
     *  The other component of this is the front end. Since the backend has been so tough to build we wanted to get an easy front end and [Flutter](https://flutter.dev/) gave us exactly that.
-    *  The journey so far is filled with a lot of learning and staring deeply at pull requests. Flutter reminds me a lot of SwiftUI and I am enjoying the familiarity.
+    *  The journey so far is filled with a lot of learning and staring deeply at pull requests. Flutter reminds me a lot of **SwiftUI** and I am enjoying the familiarity.
+
+* **The Goal** 
+- By the end of the year we want to have pre-trained models that we can use. Then we will embark on the goal of fine tuning the models for our usecase. There will also be a lot of testing 
+- Keep working on the front end 
