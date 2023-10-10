@@ -1,6 +1,6 @@
 +++
-title = "Projects"
-slug = "projects"
+title = "Blog"
+slug = "blog"
 +++
 
 Coming soon to a blog near you!
