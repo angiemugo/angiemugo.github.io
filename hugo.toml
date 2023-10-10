@@ -14,7 +14,7 @@ author = "Angie Mugo"
 # license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
 description = "Angie Mugo's personal website"
 keywords = "blog, developer, personal"
-info = ["iOS, macOS Engineer", "Author"]
+info = ["Software Engineer", "Author"]
 avatarURL = "images/avatar.jpg"
 
 dateFormat = "January 2, 2006"
@@ -67,14 +67,13 @@ url = "https://twitter.com/angien_mugo"
 name = "LinkedIn"
 icon = "fa fa-2x fa-linkedin"
 weight = 3
-url = "https://www.linkedin.com/in/angiemugo/"
+url = "https://www.linkedin.com/in/angela-mugo-ab933574"
 
 [[params.social]]
 name = "Medium"
 icon = "fa fa-2x fa-medium"
 weight = 4
-url = "https://www.linkedin.com/in/angela-mugo-ab933574"
-
+url = "https://medium.com/@angela.mugo
 
 [languages.en]
 languageName = ":uk:"
