@@ -1,6 +1,6 @@
-baseURL: https://example.org
+baseURL: "/"
 languageCode: "en-us"
-title: "Dee's Profile"
+title: "Angie's Profile"
 theme: hugo-profile
 
 outputs:
