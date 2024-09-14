@@ -130,7 +130,7 @@ params:
     intro: "Hi, my name is"
     title: "Angela."
     subtitle: "I build things for iOS, Android, MacOS and all apple platforms "
-    content: "I love building products for niche users. I understand the business of software, however I derive the most joy from ensuring every single person who uses my product is happy. I focus on accessibility, localisation and customisation. All products should serve all the users easily and without them having to compromise on quality."
+    content: "A passionate mobile developer. I am currently exploring building fun whimsical products."
     image: "/Avatar.png"
     bottomImage:
       enable: true
@@ -156,9 +156,8 @@ params:
     title: "About Me"
     image: "/programmer_woman.jpg"
     content: |-
-      I am a software developer with a passion for web development. I have a background in computer science and mathematics, and I have a strong interest in the intersection of technology and art. I am currently working as a software developer at [example org.](https://example.com) in San Francisco, CA.
-
-      I am currently working on a project that will be used to help people find the best way to get around the city.
+      I am a software developer with a passion for mobile development. My approach to product development is centered around the user. 
+      I believe in creating highly customizable products to meet the diverse needs of users, especially those who require extensive accomodations. I pay close attention to accessibility, which is made easier by the integration of accessibility features in the native components we use. I am also cautious of dark patterns and believe in acquiring and retaining customers by providing genuine value, rather than making it difficult for them to leave the product.
     skills:
       enable: true
       title: "Here are a few technologies I've been working with recently:"
