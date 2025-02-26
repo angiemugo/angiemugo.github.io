@@ -138,7 +138,7 @@ params:
     button:
       enable: true
       name: "Resume"
-      url: "/Angela_Mugo_Resume"
+      url: "/Angela_Resume"
       download: true
       newPage: false
     socialLinks:
@@ -190,7 +190,7 @@ params:
 
       - job: "Senior iOS Developer"
         company: "SafeBoda"
-        companyUrl: "https://example.com"
+        companyUrl: "https://www.safeboda.com/"
         date: "Jan 2020 - Aug 2020"
         info:
           enable: true
@@ -209,7 +209,7 @@ params:
     enable: true
     items:
       - title: Exercism MacOS
-        content: A highly customizable and mobile first Hugo template for personal portfolio and blog.
+        content: A MacOS flavor of the amazing exercism.org learning platform.
         image: "/exercism.png"
         featured:
           name: Demo
