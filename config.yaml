@@ -148,7 +148,7 @@ params:
           url: "https://github.com/angiemugo/"
         - icon: fab fa-x-twitter
           url: https://twitter.com/angien_mugo
-        - icon: "fab fa-medium"
+        - icon: fab fa-medium
           url: https://medium.com/@angela.mugo
 
   # About
@@ -209,12 +209,12 @@ params:
   projects:
     enable: true
     items:
-      - title: Exercism MacOS
-        content: A MacOS flavor of the amazing exercism.org learning platform.
+      - title: Exercode
+        content: A MacOS flavor of the amazing exercism.org learning platform. I started building this app to learn SwiftUI and accessibility on the MAcOS in general.  It is a work in progress, but I am excited about the journey. It is an open source project and I welcome contributions.
         image: "/exercism.png"
         featured:
           name: Demo
-          link: https://testflight.apple.com/join/iahVRtO4
+          link: https://apps.apple.com/ke/app/exercode/id6477780023?mt=12
         badges:
           - "SwiftUI"
           - "AsyncAwait"
@@ -224,12 +224,26 @@ params:
           - icon: fab fa-github
             url: https://github.com/gurusabarish/hugo-profile
 
+      - title: Shelfy 
+        content: Shelfy is an image search based market place app. It is built on flutter and consumes an image retrieval model that we built and trained. 
+        image: "/shelfy.jpg"
+        badges:
+          - Flutter
+          - "Dart"
+          - "Flame"
+          - "Riverpod"
+          - "Python"
+          - TensorFlow
+
+        links:
+          - icon: fab fa-apple
+            url: https://testflight.apple.com/join/W9Pbzjcj
+          - icon: fab fa-android
+            url: https://play.google.com/apps/test/com.shelfyAfrica.shelfy/3
+
       - title: Every brilliant thing 
         content: A boy begins listing small, brilliant things that bring him joy in an effort to save his mom from committing suicide. My unique interpretation reimagines this narrative through a gamified Flutter app, designed to add little sparks of hope to your day.
         image: "/EBT.jpg"
-        featured:
-          name: Demo
-          link: https://django-converter.herokuapp.com
         badges:
           - "Flutter"
           - "Dart"
@@ -237,8 +251,7 @@ params:
           - "Bloc"
         links:
           - icon: fab fa-github
-            url: https://github.com/gurusabarish/converter
-
+            url: https://github.com/angiemugo/EBR.git
 
   #Contact
   contact:
